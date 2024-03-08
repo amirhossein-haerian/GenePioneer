@@ -1,0 +1,25 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='genepioneer',
+    version='0.1.0',
+    description='A Python package for identifying essential genes in cancer.',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+    author='Amirhossein Haerian, Golnaz Taheri',
+    author_email='your.email@example.com',
+    url='https://github.com/yourusername/GenePioneer',
+    license='MIT',
+    packages=find_packages(),
+    install_requires=[
+        'numpy',
+        'networkx',
+        'scipy',
+    ],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
+    ],
+    keywords='cancer, genomics, gene-analysis',
+)
