@@ -7,14 +7,16 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='Amirhossein Haerian, Golnaz Taheri',
-    author_email='your.email@example.com',
-    url='https://github.com/yourusername/GenePioneer',
+    author_email='haerian.amirhossein@gmail.com',
+    url='https://github.com/amirhossein-haerian/GenePioneer',
     license='MIT',
     packages=find_packages(),
     install_requires=[
         'numpy',
         'networkx',
+        'pandas',
         'scipy',
+        'openpyxl'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
