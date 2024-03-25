@@ -4,4 +4,6 @@ from genepioneer import DataLoader
 
 data_loader = DataLoader("Skin");
 
-data_loader.load_go_connected_genes()
+genes, processes = data_loader.load_TCGA()
+
+print(genes["TP53"])
