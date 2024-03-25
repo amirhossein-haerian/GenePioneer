@@ -1,4 +1,12 @@
 import matplotlib.pyplot as plt
+import numpy as np
+import csv
+
+from collections import defaultdict
+from itertools import combinations
+from functools import lru_cache
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import networkx as nx
 from .data_loader import DataLoader
@@ -9,38 +17,112 @@ class NetworkBuilder:
         self.graph = nx.Graph()
         data_loader = DataLoader(self.cancer_type)
 
-        self.tcga_connected_genes ,self.tcga_genes, self.tcga_cases = data_loader.load_tcga_connected_genes()
-        self.go_connected_genes, self.go_cases = data_loader.load_go_connected_genes()
-
+        self.genes_with_cases ,self.cases_with_genes, self.total_cases = data_loader.load_TCGA()
+        self.genes_with_processes, self.processes_with_genes, self.total_processes = data_loader.load_IBM()
 
     def build_network(self):
-        self.edge_adder(self.tcga_connected_genes)
-        self.edge_adder(self.go_connected_genes)
+        self.edge_adder("base")
+        self.edge_adder("extend")
 
-    def edge_adder(self, connected_genes):
-        for genes_tuple, cases_list in connected_genes.items():
-            gene1, gene2 = genes_tuple
-            
-            # if not self.graph.has_node(gene1):
-            #     self.graph.add_node(gene1)
-            # if not self.graph.has_node(gene2):
-            #     self.graph.add_node(gene2)
-            
-            weight = self.weight_calculator(genes_tuple)
-            self.graph.add_edge(gene1, gene2, weight=weight)
 
-    def weight_calculator(self, genes_tuple):
-        w1 = 0
-        w2 = 0
-        if(genes_tuple in self.tcga_connected_genes):
-            w1 = len(self.tcga_connected_genes[genes_tuple])/len(self.tcga_cases)
-        if(genes_tuple in self.go_connected_genes):
-            w2 = len(self.go_connected_genes[genes_tuple])/len(self.go_cases)
+    def edge_adder(self, type):
+        if type == "base":
+            for genes in self.cases_with_genes.values():
+                for gene1, gene2 in combinations(genes, 2):
+                    if not self.graph.has_edge(gene1, gene2):
+                        self.graph.add_edge(gene1, gene2, weight=self.calculate_weight(gene1, gene2))
 
-        weight = w1 + w2
+        elif type == "extend":
+            list_of_nodes = list(self.graph.nodes())
+            for gene in list_of_nodes:
+                # Find all processes that include this gene
+                for process in self.genes_with_processes[gene]:
+                    # Connect this gene to all others in the same process
+                    for gene_to_connect in self.processes_with_genes[process]:
+                        if gene != gene_to_connect:
+                            # Check if the edge exists to avoid adding a duplicate
+                            if not self.graph.has_edge(gene, gene_to_connect):
+                                self.graph.add_edge(gene, gene_to_connect, weight=self.calculate_weight(gene, gene_to_connect))
 
-        return weight
+
+    @lru_cache(maxsize=None)
+    def shared_cases(self, gene1, gene2):
+        return len(self.genes_with_cases[gene1] & self.genes_with_cases[gene2]) if gene1 in self.genes_with_cases and gene2 in self.genes_with_cases else 0
+
+    @lru_cache(maxsize=None)
+    def shared_processes(self, gene1, gene2):
+        return sum(gene2 in self.processes_with_genes[process] for process in self.genes_with_processes[gene1])
     
+    def calculate_weight(self, gene1, gene2):
+
+        weight_cases = self.shared_cases(gene1, gene2) / self.total_cases
+        weight_processes = self.shared_processes(gene1, gene2) / self.total_processes
+
+        return weight_cases + weight_processes
+    
+
+    def weight_node(self, gi):
+        return sum([self.graph[gi][gj]['weight'] for gj in self.graph.neighbors(gi)])
+
+    def graph_entropy(self, weights):
+        probabilities = weights / weights.sum()
+        return -np.sum(probabilities * np.log(probabilities))
+
+    def node_effect_on_entropy(self, node_weight, total_weight, entropy):
+        # Estimate the change in entropy when node is removed
+        new_total_weight = total_weight - node_weight
+        # Avoid division by zero
+        if new_total_weight == 0:
+            return 0
+        new_entropy = ((total_weight * entropy) + node_weight * np.log(node_weight / total_weight)) / new_total_weight
+        return abs(entropy - new_entropy)
+    
+    def calculate_all_features(self):
+        # Precompute all centralities and entropy
+        closeness_centrality = nx.closeness_centrality(self.graph, distance='weight')
+        betweenness_centrality = nx.betweenness_centrality(self.graph, normalized=True, weight='weight')
+        eigenvector_centrality = nx.eigenvector_centrality(self.graph, weight='weight')
+
+        # Get weights for all nodes
+        node_weights = {node: self.weight_node(node) for node in self.graph.nodes()}
+        total_weight = sum(node_weights.values())
+        weights_array = np.array(list(node_weights.values()))
+        entropy = self.graph_entropy(weights_array)
+
+        # Use a ThreadPoolExecutor to parallelize the node effect on entropy calculation
+        all_features = defaultdict(dict)
+        with ThreadPoolExecutor() as executor:
+            futures = {}
+            for node in self.graph.nodes():
+                futures[executor.submit(self.node_effect_on_entropy, node_weights[node], total_weight, entropy)] = node
+
+            for future in as_completed(futures):
+                node = futures[future]
+                effect_on_entropy = future.result()
+                all_features[node] = {
+                    'weight': node_weights[node],
+                    'closeness_centrality': closeness_centrality[node],
+                    'betweenness_centrality': betweenness_centrality[node],
+                    'eigenvector_centrality': eigenvector_centrality[node],
+                    'effect_on_entropy': effect_on_entropy
+                }
+
+        all_features['graph_entropy'] = entropy
+        return all_features
+    
+    def save_features_to_csv(self, all_features, filename):
+        with open(filename, 'w', newline='') as csvfile:
+            fieldnames = ['node', 'weight', 'closeness_centrality', 'betweenness_centrality',
+                        'eigenvector_centrality', 'effect_on_entropy']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            
+            writer.writeheader()
+            for node, features in all_features.items():
+                if node != 'graph_entropy':
+                    features['node'] = node  # Add node ID to the row
+                    writer.writerow(features)
+            # Add the graph entropy at the end
+            writer.writerow({'node': 'graph_entropy', 'weight': all_features['graph_entropy']})
     def print_network_summary(self):
         print(f"Number of nodes: {self.graph.number_of_nodes()}")
         print(f"Number of edges: {self.graph.number_of_edges()}")
@@ -61,13 +143,12 @@ class NetworkBuilder:
         edges_weights = nx.get_edge_attributes(self.graph, 'weight')
         sorted_weights = sorted(edges_weights.items(), key=lambda x: x[1], reverse=True)
         print("Top 5 edges by weight:", sorted_weights[:5])
+
+        connected_components = list(nx.connected_components(self.graph))
+
+        print(f"Total connected components: {len(connected_components)}")
+
+        for i, component in enumerate(connected_components):
+            subgraph = self.graph.subgraph(component)
+            print(f"Subgraph {i+1} has {subgraph.number_of_nodes()} nodes.")
     
-    def draw_network(self, with_edge_weights=False):
-        pos = nx.spring_layout(self.graph)  # For consistent positioning
-        nx.draw(self.graph, pos, with_labels=True, node_color='skyblue', node_size=700, font_size=10)
-        
-        if with_edge_weights:
-            edge_labels = nx.get_edge_attributes(self.graph, 'weight')
-            nx.draw_networkx_edge_labels(self.graph, pos, edge_labels=edge_labels, font_size=8)
-        
-        plt.show()
