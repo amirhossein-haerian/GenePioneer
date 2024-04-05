@@ -68,24 +68,24 @@ class NetworkBuilder:
         probabilities = weights / weights.sum()
         return -np.sum(probabilities * np.log(probabilities))
 
-    def node_effect_on_entropy(self, node_weight, total_weight, entropy):
-        # Estimate the change in entropy when node is removed
-        new_total_weight = total_weight - node_weight
-        # Avoid division by zero
-        if new_total_weight == 0:
-            return 0
-        new_entropy = ((total_weight * entropy) + node_weight * np.log(node_weight / total_weight)) / new_total_weight
+    def node_effect_on_entropy(self, node, entropy):
+        graph_clone = self.graph.copy()
+        graph_clone.remove_node(node)
+
+        node_weights = {node: self.weight_node(node) for node in graph_clone.nodes()}
+        weights_array = np.array(list(node_weights.values()))
+        new_entropy = self.graph_entropy(weights_array)
         return abs(entropy - new_entropy)
     
     def calculate_all_features(self):
         # Precompute all centralities and entropy
         closeness_centrality = nx.closeness_centrality(self.graph, distance='weight')
+        print("here", closeness_centrality)
         betweenness_centrality = nx.betweenness_centrality(self.graph, normalized=True, weight='weight')
         eigenvector_centrality = nx.eigenvector_centrality(self.graph, weight='weight')
 
         # Get weights for all nodes
         node_weights = {node: self.weight_node(node) for node in self.graph.nodes()}
-        total_weight = sum(node_weights.values())
         weights_array = np.array(list(node_weights.values()))
         entropy = self.graph_entropy(weights_array)
 
@@ -94,7 +94,7 @@ class NetworkBuilder:
         with ThreadPoolExecutor() as executor:
             futures = {}
             for node in self.graph.nodes():
-                futures[executor.submit(self.node_effect_on_entropy, node_weights[node], total_weight, entropy)] = node
+                futures[executor.submit(self.node_effect_on_entropy, node, entropy)] = node
 
             for future in as_completed(futures):
                 node = futures[future]
