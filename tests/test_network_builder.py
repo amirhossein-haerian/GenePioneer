@@ -1,11 +1,29 @@
 from genepioneer import NetworkBuilder
 
-network_builder = NetworkBuilder("Kidney")
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import pandas as pd
 
-network_builder.build_network()
-network_builder.print_network_summary()
-network_builder.analyze_nodes_edges()
-# network_builder.compute_all_features()
-# print(network_builder.graph.nodes("TP53"))
-features = network_builder.calculate_all_features()
-network_builder.save_features_to_csv(features, 'network_features.csv')
+cancers = ["Adrenal", "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"]
+
+def process_cancer(cancer):
+    print("Working on: ",cancer)
+    network_builder = NetworkBuilder(cancer)
+    network_builder.build_network()
+
+    features = network_builder.calculate_all_features()
+    network_builder.save_features_to_csv(features, f"{cancer}_network_features.csv")
+
+# Using ProcessPoolExecutor to run tasks in parallel
+def main():
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(process_cancer, cancer) for cancer in cancers]
+        for future in futures:
+            # Handle results or exceptions if necessary
+            try:
+                result = future.result()
+                # Process result if necessary
+            except Exception as exc:
+                print(f'Generated an exception: {exc}')
+
+if __name__ == '__main__':
+    main()
