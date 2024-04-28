@@ -19,7 +19,6 @@ class DataLoader:
         # 👆 the list of 200 most significant genes for the chosen cancer type
 
         for gene in genes_list:
-            genes_with_cases[gene] = set({})
             gene_path = os.path.join(self.TCGA_data_path, gene)
             case_list_file_path = os.path.join(gene_path, f"{gene}.tsv")
             cases_df = pd.read_csv(case_list_file_path, sep='\t')
@@ -37,7 +36,7 @@ class DataLoader:
             for case in cases:
                 cases_with_genes[case].add(gene)
 
-        total_cases = sum(len(cases) for cases in cases_with_genes.values())
+        total_cases = len(cases_with_genes)
 
         return genes_with_cases, cases_with_genes, total_cases
     

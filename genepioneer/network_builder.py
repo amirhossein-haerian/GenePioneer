@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import networkx as nx
 from .data_loader import DataLoader
+from .network_analysis import NetworkAnalysis
 
 class NetworkBuilder:
     def __init__(self, cancer_type):
@@ -19,10 +20,12 @@ class NetworkBuilder:
 
         self.genes_with_cases ,self.cases_with_genes, self.total_cases = data_loader.load_TCGA()
         self.genes_with_processes, self.processes_with_genes, self.total_processes = data_loader.load_IBM()
+        
+        self.all_features = defaultdict(dict)
 
     def build_network(self):
         self.edge_adder("base")
-        self.edge_adder("extend")
+        # self.edge_adder("extend")
 
 
     def edge_adder(self, type):
@@ -80,7 +83,9 @@ class NetworkBuilder:
     def calculate_all_features(self):
         # Precompute all centralities and entropy
         closeness_centrality = nx.closeness_centrality(self.graph, distance='weight')
-        print("here", closeness_centrality)
+        max_closeness = max(closeness_centrality.values())
+        min_closeness = min(closeness_centrality.values())
+        normalized_closeness = {node: (value - min_closeness) / (max_closeness - min_closeness) for node, value in closeness_centrality.items()}
         betweenness_centrality = nx.betweenness_centrality(self.graph, normalized=True, weight='weight')
         eigenvector_centrality = nx.eigenvector_centrality(self.graph, weight='weight')
 
@@ -90,7 +95,6 @@ class NetworkBuilder:
         entropy = self.graph_entropy(weights_array)
 
         # Use a ThreadPoolExecutor to parallelize the node effect on entropy calculation
-        all_features = defaultdict(dict)
         with ThreadPoolExecutor() as executor:
             futures = {}
             for node in self.graph.nodes():
@@ -99,30 +103,60 @@ class NetworkBuilder:
             for future in as_completed(futures):
                 node = futures[future]
                 effect_on_entropy = future.result()
-                all_features[node] = {
+                self.all_features[node] = {
                     'weight': node_weights[node],
-                    'closeness_centrality': closeness_centrality[node],
+                    'closeness_centrality': normalized_closeness[node],
                     'betweenness_centrality': betweenness_centrality[node],
                     'eigenvector_centrality': eigenvector_centrality[node],
-                    'effect_on_entropy': effect_on_entropy
+                    'effect_on_entropy': effect_on_entropy,
                 }
-
-        all_features['graph_entropy'] = entropy
-        return all_features
+                self.graph.nodes[node].update({
+                    'weight': node_weights[node],
+                    'closeness_centrality': normalized_closeness[node],
+                    'betweenness_centrality': betweenness_centrality[node],
+                    'eigenvector_centrality': eigenvector_centrality[node],
+                    'effect_on_entropy': effect_on_entropy,
+                    'graph_entropy': entropy
+                })
+            
+            self.add_LS_to_network()
+            
+            self.all_features['graph_entropy'] = entropy
+        
+        return self.all_features
     
     def save_features_to_csv(self, all_features, filename):
         with open(filename, 'w', newline='') as csvfile:
             fieldnames = ['node', 'weight', 'closeness_centrality', 'betweenness_centrality',
-                        'eigenvector_centrality', 'effect_on_entropy']
+                        'eigenvector_centrality', 'effect_on_entropy', "ls_score"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             
             writer.writeheader()
             for node, features in all_features.items():
-                if node != 'graph_entropy':
+                if node != 'graph_entropy' and node != "ls_for_features":
                     features['node'] = node  # Add node ID to the row
                     writer.writerow(features)
-            # Add the graph entropy at the end
+                    
             writer.writerow({'node': 'graph_entropy', 'weight': all_features['graph_entropy']})
+            writer.writerow({'node': 'ls_for_features', 'weight': all_features['ls_for_features']})
+                
+            
+    def add_LS_to_network(self):
+        network_analysis = NetworkAnalysis(self.cancer_type, self.all_features);
+
+        nodes, features = network_analysis.compute_laplacian_scores()
+        for node in self.graph.nodes():
+                        
+            self.all_features[node]["ls_score"] = nodes.loc[node].LaplacianScore
+            
+            self.graph.nodes[node].update({
+                'ls_score': nodes.loc[node].LaplacianScore,
+                'ls_for_features': features,
+            })
+            
+        self.all_features["ls_for_features"] = features
+        return self.all_features
+        
     def print_network_summary(self):
         print(f"Number of nodes: {self.graph.number_of_nodes()}")
         print(f"Number of edges: {self.graph.number_of_edges()}")
