@@ -25,7 +25,7 @@ class NetworkBuilder:
 
     def build_network(self):
         self.edge_adder("base")
-        # self.edge_adder("extend")
+        self.edge_adder("extend")
 
 
     def edge_adder(self, type):
@@ -126,6 +126,7 @@ class NetworkBuilder:
         return self.all_features
     
     def save_features_to_csv(self, all_features, filename):
+        nx.write_gml(self.graph, "test.gml")
         with open(filename, 'w', newline='') as csvfile:
             fieldnames = ['node', 'weight', 'closeness_centrality', 'betweenness_centrality',
                         'eigenvector_centrality', 'effect_on_entropy', "ls_score"]
@@ -151,10 +152,10 @@ class NetworkBuilder:
             
             self.graph.nodes[node].update({
                 'ls_score': nodes.loc[node].LaplacianScore,
-                'ls_for_features': features,
+                'ls_for_features': np.array_str(features),
             })
             
-        self.all_features["ls_for_features"] = features
+        self.all_features["ls_for_features"] = np.array_str(features)
         return self.all_features
         
     def print_network_summary(self):
