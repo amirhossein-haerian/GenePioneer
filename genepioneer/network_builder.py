@@ -26,6 +26,8 @@ class NetworkBuilder:
     def build_network(self):
         self.edge_adder("base")
         self.edge_adder("extend")
+        
+        return self.graph
 
 
     def edge_adder(self, type):
@@ -87,7 +89,7 @@ class NetworkBuilder:
         min_closeness = min(closeness_centrality.values())
         normalized_closeness = {node: (value - min_closeness) / (max_closeness - min_closeness) for node, value in closeness_centrality.items()}
         betweenness_centrality = nx.betweenness_centrality(self.graph, normalized=True, weight='weight')
-        eigenvector_centrality = nx.eigenvector_centrality(self.graph, weight='weight')
+        eigenvector_centrality = nx.eigenvector_centrality(self.graph, weight='weight', max_iter=1000, tol=1e-06)
 
         # Get weights for all nodes
         node_weights = {node: self.weight_node(node) for node in self.graph.nodes()}
@@ -95,10 +97,9 @@ class NetworkBuilder:
         entropy = self.graph_entropy(weights_array)
 
         # Use a ThreadPoolExecutor to parallelize the node effect on entropy calculation
-        with ThreadPoolExecutor() as executor:
-            futures = {}
-            for node in self.graph.nodes():
-                futures[executor.submit(self.node_effect_on_entropy, node, entropy)] = node
+        with ThreadPoolExecutor(max_workers=7) as executor:
+            
+            futures = {executor.submit(self.node_effect_on_entropy, node, entropy): node for node in self.graph.nodes()}
 
             for future in as_completed(futures):
                 node = futures[future]
@@ -126,8 +127,8 @@ class NetworkBuilder:
         return self.all_features
     
     def save_features_to_csv(self, all_features, filename):
-        nx.write_gml(self.graph, "test.gml")
-        with open(filename, 'w', newline='') as csvfile:
+        nx.write_gml(self.graph, f"{filename}.gml")
+        with open(f"{filename}.csv", 'w', newline='') as csvfile:
             fieldnames = ['node', 'weight', 'closeness_centrality', 'betweenness_centrality',
                         'eigenvector_centrality', 'effect_on_entropy', "ls_score"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
