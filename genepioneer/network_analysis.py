@@ -3,6 +3,10 @@ import pandas as pd
 import os
 from scipy.spatial.distance import cdist
 
+import igraph as ig
+from igraph import Graph
+import leidenalg as la
+
 import networkx as nx
 import random
 
@@ -129,48 +133,63 @@ class NetworkAnalysis:
         # Additional metrics can be included here
         return avg_ls_score
 
-    def new_algorithm(self, max_size=30):
-        G = nx.read_gml(f"{self.cancer_type}_network_features.gml")
+
+    def load_and_prepare_graph(self, file_name):
+        G = ig.Graph.Read_GML(f"{file_name}.gml")
+        G.es['ls_score'] = [(G.vs[edge.source]['ls_score'] + G.vs[edge.target]['ls_score']) / 2 for edge in G.es]
+        return G
+
+    def find_partitions(self, graph, min_size, max_size):
+        partitions = []
+        for size in range(min_size, max_size + 1):
+            partition = la.find_partition(graph, la.ModularityVertexPartition, weights='ls_score', max_comm_size=size, n_iterations=-1, seed=82)
+            avg_ls_scores = [sum(graph.vs[comm]['ls_score']) / len(comm) for comm in partition]
+            partitions.append((partition, avg_ls_scores))
+        return partitions
+
+    def filter_and_select_partitions(self, partitions, min_comm_size, max_comm_size):
+        filtered_partitions = []
+        total_communities = 0
+        for partition, scores in partitions:
+            total_communities += len(partition)
+            filtered_comm = [(comm, score) for comm, score in zip(partition, scores) if min_comm_size <= len(comm) <= max_comm_size]
+            # Remove nested communities
+            unique_communities = []
+            seen_communities = set()
+            for comm, score in filtered_comm:
+                sorted_comm = tuple(sorted(comm))  # Convert list to sorted tuple for consistency and comparison
+                # Check if this community is subset of another or if it's already seen
+                if not any(set(sorted_comm).issubset(set(other)) for other in seen_communities) and sorted_comm not in seen_communities:
+                    seen_communities.add(sorted_comm)
+                    unique_communities.append((comm, score))
+
+            filtered_partitions.extend(unique_communities)
+        print(total_communities, len(filtered_partitions))
+        # Sort by average 'ls_score' and select top 20
+        top_modules = sorted(filtered_partitions, key=lambda x: x[1], reverse=True)[:20]
+        return top_modules
+    
+    def get_labeled_modules_with_scores(self, modules, graph):
+        labeled_modules = []
+        for module, score in modules:
+            # Retrieve labels for each node ID in the module
+            labels = [graph.vs[node_id]['label'] for node_id in module]  # Ensure 'label' matches the attribute name
+            # Append the list of labels with the average ls_score for the module
+            labeled_modules.append((list(labels), score))
+            
+        return labeled_modules
+    
+    def new_algorithm(self):
         
-        modules = []
-        explored_nodes = set()
+        G = self.load_and_prepare_graph(f"{self.cancer_type}_network_features")
+
+        # Find partitions
+        partitions = self.find_partitions(G, 5, 30)
+
+        # Filter and select top partitions
+        top_modules = self.filter_and_select_partitions(partitions, 5, 15)  
+        labeled_modules_with_scores = self.get_labeled_modules_with_scores(top_modules, G)    
         
-        sorted_nodes = sorted(G.nodes(data=True), key=lambda x: x[1]['ls_score'], reverse=True)
-        count = 1
-        for node, data in sorted_nodes:
-            if node not in explored_nodes:
-                new_module = {node}
-                threshold = .8
-                growth_possible = True
-                while growth_possible and len(new_module) < max_size:
-                    growth_possible = False
-                    boundary = self.find_neighborhood(G, new_module)
-                    avg_ls = self.calculate_average_weight(G, new_module)
-                    max_ls = max(G.nodes[node]['ls_score'] for node in boundary) if boundary else 1
-                    max_connectivity = max(sum(1 for neighbor in G.neighbors(n) if neighbor in new_module) for n in boundary)
-
-                    candidate_scores = {}
-                    for node in boundary:
-                        if node not in new_module:
-                            connectivity = sum(1 for neighbor in G.neighbors(node) if neighbor in new_module)
-                            relevance_score = G.nodes[node]['ls_score'] * (connectivity) / max_connectivity
-                            candidate_scores[node] = relevance_score
-
-                    if candidate_scores:
-                        threshold_value = avg_ls * threshold
-                        eligible_candidates = {node: score for node, score in candidate_scores.items() if score > threshold_value}
-
-                        if eligible_candidates:
-                            next_node = max(eligible_candidates, key=eligible_candidates.get)
-                            new_module.add(next_node)
-                            growth_possible = True
-                            
-                avg_weight = self.calculate_average_weight(G, new_module)
-                modules.append((list(new_module), avg_weight))
-                explored_nodes.update(new_module)
-            print(count)
-            count += 1
-                
-        return modules
+        return labeled_modules_with_scores
         
     
