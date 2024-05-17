@@ -5,7 +5,7 @@ import pandas as pd
 import json
 
 
-# "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"
+# "Adrenal", "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"
 cancers = ["Adrenal"]
 
 def analysis(cancer):
@@ -14,11 +14,11 @@ def analysis(cancer):
     
     # m = network_analysis.MG_algorithm()
     
-    # with open(f'{cancer}.json', 'w') as file:
+    # with open(f'{cancer}2.json', 'w') as file:
     #     json.dump(m, file, indent=4)
     
     m = network_analysis.new_algorithm()
-    with open(f'{cancer}.json', 'w') as file:
+    with open(f'{cancer}2.json', 'w') as file:
         json.dump(m, file, indent=4)
 
 # Using ProcessPoolExecutor to run tasks in parallel

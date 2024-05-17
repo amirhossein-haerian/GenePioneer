@@ -18,6 +18,7 @@ class NetworkAnalysis:
         self.feature_dict = features
         self.feature_matrix = None
         self.node_names = None
+        self.counter = 0
         
         self.load_data()
         
@@ -68,8 +69,8 @@ class NetworkAnalysis:
             weighted_mean = (np.matmul(np.matmul(np.transpose(F_j),D),J).item() / np.matmul(np.matmul(np.transpose(J),D),J).item()) * J
             # Subtract the weighted mean from each element of F_j to get F_j_tilde
             F_j_tilde = F_j - weighted_mean
-            numerator = np.matmul(np.matmul(np.transpose(F_j_tilde),L),F_j_tilde)
-            denominator = np.matmul(np.matmul(np.transpose(F_j_tilde),D),F_j_tilde)
+            numerator = np.matmul(np.matmul(np.transpose(F_j_tilde),L),F_j_tilde).item()
+            denominator = np.matmul(np.matmul(np.transpose(F_j_tilde),D),F_j_tilde).item()
             L_scores[j] = numerator / denominator if denominator != 0 else 0
         # Compute the LS for each gene
         LS = self.feature_matrix @ L_scores
@@ -136,46 +137,100 @@ class NetworkAnalysis:
 
     def load_and_prepare_graph(self, file_name):
         G = ig.Graph.Read_GML(f"{file_name}.gml")
-        G.es['ls_score'] = [(G.vs[edge.source]['ls_score'] + G.vs[edge.target]['ls_score']) / 2 for edge in G.es]
-        return G
+        # G.es['ls_score'] = [((G.vs[edge.source]['ls_score'] + G.vs[edge.target]['ls_score']) / 2) * edge["weight"] for edge in G.es]
+        
+        # node_scores = [(node.index, node['ls_score']) for node in G.vs]
 
+        # # Sort nodes by ls_score from high to low
+        # sorted_nodes = sorted(node_scores, key=lambda x: x[1], reverse=True)
+
+        # # Extract the sorted indices
+        # self.sorted_indices = [node[0] for node in sorted_nodes]
+        
+        return G
+    
     def find_partitions(self, graph, min_size, max_size):
         partitions = []
         for size in range(min_size, max_size + 1):
-            partition = la.find_partition(graph, la.ModularityVertexPartition, weights='ls_score', max_comm_size=size, n_iterations=-1, seed=82)
+            partition = la.find_partition(graph, la.ModularityVertexPartition, weights='weight', max_comm_size=size, n_iterations=-1)
+            print(partition.modularity)
             avg_ls_scores = [sum(graph.vs[comm]['ls_score']) / len(comm) for comm in partition]
-            partitions.append((partition, avg_ls_scores))
+                        
+            avg_edge_weights = []
+            for community in partition:
+                edge_weights = []
+                for v in community:
+                    for neighbor in graph.neighbors(v, mode="all"):
+                        if neighbor in community:
+                            edge_id = graph.get_eid(v, neighbor)
+                            edge_weights.append(graph.es[edge_id]['weight'])
+                            
+                avg_weight = sum(edge_weights) / len(edge_weights) if edge_weights else 0
+                avg_edge_weights.append(avg_weight)
+                    
+            self.counter += 1
+            print(self.counter)
+            partitions.append((partition, avg_ls_scores, avg_edge_weights)) 
         return partitions
 
     def filter_and_select_partitions(self, partitions, min_comm_size, max_comm_size):
         filtered_partitions = []
         total_communities = 0
-        for partition, scores in partitions:
+        for partition, scores, edge_weights in partitions:
             total_communities += len(partition)
-            filtered_comm = [(comm, score) for comm, score in zip(partition, scores) if min_comm_size <= len(comm) <= max_comm_size]
+            filtered_comm = [(comm, score, edge_weight) for comm, score, edge_weight in zip(partition, scores, edge_weights) if min_comm_size <= len(comm) <= max_comm_size]
             # Remove nested communities
             unique_communities = []
             seen_communities = set()
-            for comm, score in filtered_comm:
+            for comm, score, edge_weight in filtered_comm:
                 sorted_comm = tuple(sorted(comm))  # Convert list to sorted tuple for consistency and comparison
                 # Check if this community is subset of another or if it's already seen
                 if not any(set(sorted_comm).issubset(set(other)) for other in seen_communities) and sorted_comm not in seen_communities:
                     seen_communities.add(sorted_comm)
-                    unique_communities.append((comm, score))
+                    unique_communities.append((comm, score, edge_weight))
 
             filtered_partitions.extend(unique_communities)
         print(total_communities, len(filtered_partitions))
         # Sort by average 'ls_score' and select top 20
-        top_modules = sorted(filtered_partitions, key=lambda x: x[1], reverse=True)[:20]
+        
+        
+        ls_scores = [item[1] for item in filtered_partitions]
+        edge_weights = [item[2] for item in filtered_partitions]
+
+        # Normalize ls_scores
+        min_ls = min(ls_scores)
+        max_ls = max(ls_scores)
+        normalized_ls_scores = [(score - min_ls) / (max_ls - min_ls) for score in ls_scores]
+
+        # Normalize edge_weights
+        min_edge_weight = min(edge_weights)
+        max_edge_weight = max(edge_weights)
+        normalized_edge_weights = [(weight - min_edge_weight) / (max_edge_weight - min_edge_weight) for weight in edge_weights]
+
+        # Multiply normalized ls_scores and normalized edge_weights
+        multi_scores = [(normalized_ls_scores[i] * normalized_edge_weights[i]) for i in range(len(filtered_partitions))]
+
+        # Create a new list of tuples with the multiplied scores
+        normalized_filtered_partitions = [(filtered_partitions[i][0], multi_scores[i], ls_scores[i], edge_weights[i]) for i in range(len(filtered_partitions))]
+
+        # Sort the filtered partitions based on the multiplied scores
+        top_modules = sorted(normalized_filtered_partitions, key=lambda x: x[1], reverse=True)
+        
+        # modules_to_report = []
+        # while len(modules_to_report) < 20:
+        #     for module, multi_score, ls_score, edge_weight in top_modules:
+        #         if edge_weight > 0.18:
+        #             modules_to_report.append((module, multi_score, ls_score, edge_weight))
+        
         return top_modules
     
     def get_labeled_modules_with_scores(self, modules, graph):
         labeled_modules = []
-        for module, score in modules:
+        for module, score, score1, score2 in modules:
             # Retrieve labels for each node ID in the module
             labels = [graph.vs[node_id]['label'] for node_id in module]  # Ensure 'label' matches the attribute name
             # Append the list of labels with the average ls_score for the module
-            labeled_modules.append((list(labels), score))
+            labeled_modules.append((list(labels), score, score1, score2))
             
         return labeled_modules
     
@@ -184,10 +239,10 @@ class NetworkAnalysis:
         G = self.load_and_prepare_graph(f"{self.cancer_type}_network_features")
 
         # Find partitions
-        partitions = self.find_partitions(G, 5, 30)
+        partitions = self.find_partitions(G, 4, 16)
 
         # Filter and select top partitions
-        top_modules = self.filter_and_select_partitions(partitions, 5, 15)  
+        top_modules = self.filter_and_select_partitions(partitions, 4, 10)  
         labeled_modules_with_scores = self.get_labeled_modules_with_scores(top_modules, G)    
         
         return labeled_modules_with_scores

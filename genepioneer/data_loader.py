@@ -7,7 +7,9 @@ class DataLoader:
     def __init__(self, cancer_type):
         self.cancer_type = cancer_type
         self.TCGA_data_path = os.path.join("../GenesData/", self.cancer_type)
-        self.IBM_data_path = os.path.join("../GenesData/IBP_GO_Terms.xlsx")
+        # self.IBM_data_path = os.path.join("../GenesData/IBP_GO_Terms.xlsx")
+        self.IBM_data_path = os.path.join("../GenesData/Sample.xlsx")
+
 
     def load_TCGA(self):
         genes_with_cases = defaultdict(set)
@@ -18,11 +20,15 @@ class DataLoader:
         genes_list.sort()
         # 👆 the list of 200 most significant genes for the chosen cancer type
 
+        count = 0
         for gene in genes_list:
             gene_path = os.path.join(self.TCGA_data_path, gene)
             case_list_file_path = os.path.join(gene_path, f"{gene}.tsv")
             cases_df = pd.read_csv(case_list_file_path, sep='\t')
             cases_list = cases_df["Case ID"].tolist()
+            count += 1
+            if count > 50: 
+                break
 
             # 👆 list of cases for each gene inside the list of genes for chosen cancer
 
