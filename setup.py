@@ -18,7 +18,9 @@ setup(
         'scipy',
         'openpyxl',
         'scipy',
-        'scikit-learn'
+        'scikit-learn',
+        'igraph',
+        
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
