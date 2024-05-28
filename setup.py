@@ -20,6 +20,7 @@ setup(
         'scipy',
         'scikit-learn',
         'igraph',
+        'leidenalg'
         
     ],
     classifiers=[
