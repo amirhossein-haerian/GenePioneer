@@ -16,7 +16,9 @@ setup(
         'networkx',
         'pandas',
         'scipy',
-        'openpyxl'
+        'openpyxl',
+        'scipy',
+        'sklearn'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
