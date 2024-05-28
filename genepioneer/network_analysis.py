@@ -97,8 +97,8 @@ class NetworkAnalysis:
     def find_partitions(self, graph, min_size, max_size):
         partitions = []
         for size in range(min_size, max_size + 1):
-            partition = la.find_partition(graph, la.ModularityVertexPartition, weights='process_weight', max_comm_size=size, n_iterations=-1)
-            # partition = la.find_partition(graph, la.CPMVertexPartition, weights='process_weight', resolution_parameter=0.05, max_comm_size=size, n_iterations=-1)
+            # partition = la.find_partition(graph, la.ModularityVertexPartition, weights='process_weight', max_comm_size=size, n_iterations=-1)
+            partition = la.find_partition(graph, la.CPMVertexPartition, weights='process_weight', resolution_parameter=0.05, max_comm_size=size, n_iterations=-1)
 
             avg_ls_scores = [sum(graph.vs[community]['ls_score']) / len(community) for community in partition]
             avg_edge_weights = [self.calculate_avg_edge_weight(graph, community) for community in partition]

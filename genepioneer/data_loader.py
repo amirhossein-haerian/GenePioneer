@@ -7,8 +7,8 @@ class DataLoader:
     def __init__(self, cancer_type):
         self.cancer_type = cancer_type
         self.TCGA_data_path = os.path.join("../GenesData/", self.cancer_type)
-        # self.IBM_data_path = os.path.join("../GenesData/IBP_GO_Terms.xlsx")
-        self.IBM_data_path = os.path.join("../GenesData/Sample.xlsx")
+        self.IBM_data_path = os.path.join("../GenesData/IBP_GO_Terms.xlsx")
+        # self.IBM_data_path = os.path.join("../GenesData/Sample.xlsx")
 
 
     def load_TCGA(self):

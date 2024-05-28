@@ -78,16 +78,7 @@ class NetworkBuilder:
         return abs(entropy - new_entropy)
     
     def calculate_all_features(self):
-        A = nx.adjacency_matrix(self.graph, weight="inverted_weight").tolil()
-        D = scipy.sparse.csgraph.floyd_warshall(A, directed=False, unweighted=False)
-        
-        closeness_centrality = {}
-        for r, node in enumerate(self.graph.nodes()):
-            total_distance = np.sum(D[r, :])
-            if total_distance > 0:
-                closeness_centrality[node] = (len(self.graph) - 1) / total_distance
-            else:
-                closeness_centrality[node] = 0
+        closeness_centrality = nx.closeness_centrality(self.graph, distance="inverted_weight")
         print("closensess")
         
         betweenness_centrality = nx.betweenness_centrality(self.graph, normalized=True, weight='inverted_weight')
