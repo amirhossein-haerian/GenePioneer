@@ -53,7 +53,7 @@ class NetworkBuilder:
     
 
     def weight_node(self, gi):
-        total_weight = sum(data['weight'] for _, _, data in self.graph.edges(gi, data=True))
+        total_weight = sum(data['process_weight'] for _, _, data in self.graph.edges(gi, data=True))
         return total_weight
     
     def weight_nodes(self, graph):
@@ -69,7 +69,7 @@ class NetworkBuilder:
         
         for neighbor in self.graph.neighbors(node):
             if neighbor in copy_of_weights:
-                edge_weight = self.graph[node][neighbor].get('weight', 0)
+                edge_weight = self.graph[node][neighbor].get('process_weight', 0)
                 copy_of_weights[neighbor] -= edge_weight
                 copy_of_weights[neighbor] = max(copy_of_weights[neighbor], 1e-9)
         

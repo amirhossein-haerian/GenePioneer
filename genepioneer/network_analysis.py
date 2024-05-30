@@ -97,8 +97,8 @@ class NetworkAnalysis:
     def find_partitions(self, graph, min_size, max_size):
         partitions = []
         for size in range(min_size, max_size + 1):
-            # partition = la.find_partition(graph, la.ModularityVertexPartition, weights='process_weight', max_comm_size=size, n_iterations=-1)
-            partition = la.find_partition(graph, la.CPMVertexPartition, weights='process_weight', resolution_parameter=0.05, max_comm_size=size, n_iterations=-1)
+            partition = la.find_partition(graph, la.ModularityVertexPartition, weights='process_weight', max_comm_size=size, n_iterations=-1)
+            # partition = la.find_partition(graph, la.CPMVertexPartition, weights='process_weight', resolution_parameter=0.1, max_comm_size=size, n_iterations=-1)
 
             avg_ls_scores = [sum(graph.vs[community]['ls_score']) / len(community) for community in partition]
             avg_edge_weights = [self.calculate_avg_edge_weight(graph, community) for community in partition]
@@ -184,7 +184,7 @@ class NetworkAnalysis:
         edge_weights_normalized = (edge_weights - np.min(edge_weights)) / (np.max(edge_weights) - np.min(edge_weights) + 1e-9)
 
         # Combine the normalized metrics (weighted sum, equal weight here but can be adjusted)
-        combined_scores = 0.5 * ls_scores_normalized + 0.5 * edge_weights_normalized
+        combined_scores = 0.85 * ls_scores_normalized + 0.15 * edge_weights_normalized
 
         # Sort based on combined scores
         sorted_indices = np.argsort(combined_scores)[::-1]
