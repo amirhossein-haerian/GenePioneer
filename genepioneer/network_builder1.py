@@ -78,13 +78,13 @@ class NetworkBuilder:
         return abs(entropy - new_entropy)
     
     def calculate_all_features(self):
-        closeness_centrality = nx.closeness_centrality(self.graph, distance="inverted_weight")
+        closeness_centrality = nx.closeness_centrality(self.graph)
         print("closensess")
         
-        betweenness_centrality = nx.betweenness_centrality(self.graph, normalized=True, weight='inverted_weight')
+        betweenness_centrality = nx.betweenness_centrality(self.graph)
         print("betweenness")
         
-        eigenvector_centrality = nx.eigenvector_centrality(self.graph, weight='process_wight')
+        eigenvector_centrality = nx.eigenvector_centrality(self.graph)
         print("eigenvector")
         
         # Get weights for all nodes
