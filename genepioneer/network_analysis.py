@@ -8,9 +8,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import MaxAbsScaler
 
-import heapq
-import statistics
-
 import igraph as ig
 import leidenalg as la
 from collections import defaultdict
@@ -92,16 +89,6 @@ class NetworkAnalysis:
         except Exception as e:
             raise ValueError(f"An error occurred while compute_laplacian_scores: {e}")
         
-    def calculate_average_weight(self, G, S):
-        weights = [G.nodes[node]['ls_score'] for node in S]
-        return sum(weights) / len(weights) if weights else 0
-    
-    def calculate_average_edge_weight(self, G, S):
-        if len(S) < 2:
-            return 0
-        edge_weights = [G[u][v]['process_weight'] for u in S for v in S if u != v and G.has_edge(u, v)]
-        return sum(edge_weights) / len(edge_weights) if edge_weights else 0
-
     def find_neighborhood(self, G, S):
         neighborhood = set()
         for node in S:
@@ -111,101 +98,59 @@ class NetworkAnalysis:
     def module_quality(self, module, G):
         subgraph = G.subgraph(module)
         density = nx.density(subgraph)
-        connectivity = nx.average_node_connectivity(subgraph)
-        return density + connectivity
-        
-    def MG_algorithm(self, T=10, T_low=0.01, min_comm_size=4, max_comm_size=10, threshold=0.8):
-        G = nx.read_gml(f"{self.cancer_type}_network_features.gml")
-        
-        modules = []
-        unvisited_nodes = set(G.nodes())
-        
-        while unvisited_nodes:
-            # Select a random seed node
-            seed = random.choice(tuple(unvisited_nodes))
-            S = {seed}
-            
-            print(self.counter)
-            self.counter += 1
-            
-            T_current = T            
-            unvisited_nodes.remove(seed)
-                
-            checked_nodes = set()            
-            # Grow the module
-            while T_current > T_low:
-                candidate_nodes = [(G.nodes[node]['ls_score'], node) for node in self.find_neighborhood(G, S)]
-                avg_weight = self.calculate_average_weight(G, S)
-                if candidate_nodes:
-                    ls_score, random_candidate = random.choice(candidate_nodes)
-                    while random_candidate in checked_nodes:
-                        ls_score, random_candidate = random.choice(candidate_nodes)
-                    if G.nodes[random_candidate]['ls_score'] > avg_weight:
-                        S.add(random_candidate)
-                        # if random_candidate in unvisited_nodes:
-                        #     unvisited_nodes.remove(random_candidate)
-                    else:
-                        x = random.uniform(0, 1)
-                        if x < np.exp((G.nodes[random_candidate]['ls_score'] - avg_weight) / T_current):
-                            S.add(random_candidate)
-                            # if random_candidate in unvisited_nodes:
-                            #     unvisited_nodes.remove(random_candidate)
-                        else:
-                            checked_nodes.add(random_candidate)
-                            
-                else:
-                    break
-                    
-                T_current *= threshold
-                
-            avg_edge_weight = self.calculate_average_edge_weight(G, S)
-            if min_comm_size <= len(list(S)) <= max_comm_size: 
-                modules.append((list(S), avg_weight, avg_edge_weight))
-        
-        
-        modules.sort(key=lambda x: x[1]+x[2]/2, reverse=True)
-                                
-        unique_communities = []
-        seen_communities = set()
+        edge_weights = nx.get_edge_attributes(subgraph, 'process_weight').values()
+        if len(edge_weights) == 0:
+            return 0
+        average_weight = sum(edge_weights) / len(edge_weights)
+        return density * average_weight
 
-        for comm, ls_score, edge_weight in modules:
-            comm_set = set(comm)
-            if not any(comm_set <= set(other) for other in seen_communities):
-                subsets_to_remove = [other for other in seen_communities if set(other) <= comm_set]
-                unique_communities = [
-                    community for community in unique_communities
-                    if set(community[0]) not in subsets_to_remove
-                ]
-
-                seen_communities.add(tuple(comm))
-                unique_communities.append((comm, ls_score, edge_weight))
-                        
-        return unique_communities
+    def modularity(self, module, G):
+        subgraph = G.subgraph(module)
         
-    def calculate_weight_threshold(self, G):
-        ls_scores = [G.nodes[node]['ls_score'] for node in G.nodes()]
-        std_ls_score = np.std(ls_scores)
-        weight_diff_threshold = std_ls_score * 4
-        return weight_diff_threshold
+        # Internal Density
+        internal_density = nx.density(subgraph)
         
+        # Conductance
+        cut_edges = nx.cut_size(G, module)
+        conductance = cut_edges / (2 * len(module))
         
-    def new_MG_algorithm(self, T=10, T_low=0.01, min_comm_size=4, max_comm_size=10, threshold=0.9):
-        G = nx.read_gml(f"{self.cancer_type}_network_features.gml")
+        # Expansion
+        expansion = cut_edges / len(module)
         
+        # Cut Ratio
+        cut_ratio = cut_edges / (len(module) * (len(G.nodes()) - len(module)))
+        
+        # Combining all metrics into a single quality score
+        # Adjust the weights as needed based on the importance of each metric
+        quality_score = (internal_density + (1 - conductance) + (1 - expansion) + (1 - cut_ratio)) / 4
+        
+        return quality_score  
+      
+    def MG_algorithm(self, G, T=10, T_low=1, min_comm_size=4, max_comm_size=10, threshold=0.9):                
         modules = []
         nodes_to_process = set(G.nodes())
+        node_participation = defaultdict(int)
         
+        if min_comm_size <= len(list(nodes_to_process)) <= max_comm_size: 
+            avg_weight = np.mean([G.nodes[node]['ls_score'] for node in nodes_to_process])
+            modules.append((list(nodes_to_process), avg_weight))
+            return modules
+        
+        self.counter = 0
         while nodes_to_process:
-            seed = random.choice(list(nodes_to_process))
+            seed = max(nodes_to_process, key=lambda node: G.nodes[node]['ls_score'])
             module = [seed]
             nodes_to_process.remove(seed)
-            
-            print(self.counter)
-            self.counter += 1   
+
+            print(len(nodes_to_process))
             
             current_T = T
+            improvement = True
+            current_modularity = self.module_quality(module, G)
+
             # Grow the module
-            while current_T > T_low:
+            while current_T > T_low and improvement:
+                x = random.uniform(0, 1)
                 avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module])
                 adjacent_nodes = self.find_neighborhood(G, module)
                 next_node = ""
@@ -216,172 +161,132 @@ class NetworkAnalysis:
                 eligible_nodes = [node for node in adjacent_nodes if G.nodes[node]['ls_score'] > avg_weight]
                 
                 if eligible_nodes:
-                    next_node = np.random.choice(eligible_nodes)
+                    participation_counts = np.array([node_participation[node] for node in eligible_nodes])
+                    weights = np.exp(-participation_counts)
+                    probabilities = weights / weights.sum()
+                    next_node = np.random.choice(eligible_nodes, p=probabilities)
                 else:
-                    x = random.uniform(0, 1)
                     node = max(adjacent_nodes, key=lambda node: G.nodes[node]['ls_score'])
                     if x < np.exp((G.nodes[node]['ls_score'] - avg_weight) / current_T):
                         next_node = node
                     else:
                         break
                     
-                if next_node:    
-                    module.append(next_node)
+                if next_node:
+                    new_module = module + [next_node]
+                    new_modularity = self.module_quality(new_module, G)
+                    if new_modularity >= current_modularity:
+                        avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module + [next_node]])
+                        module.append(next_node)
+                        current_modularity = new_modularity
+                    else:
+                        improvement = False
                     
                 current_T *= threshold
-            print(len(module))
+                
             if min_comm_size <= len(list(module)) <= max_comm_size: 
+                avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module])
                 modules.append((list(module), avg_weight))
-                nodes_to_process.difference_update(module)       
+                nodes_to_process.difference_update(module)
+                for node in module:
+                    node_participation[node] += 1
         
+        return modules
         
-        max_avg_weight = max(modules, key=lambda x: x[1])[1]
-        max_module_quality = max(modules, key=lambda x: x[2])[2]
-        
-        def composite_score(module):
-            normalized_weight = module[1] / max_avg_weight if max_avg_weight else 0
-            normalized_quality = module[2] / max_module_quality if max_module_quality else 0
-            return normalized_weight + normalized_quality
-        
-        modules.sort(key=composite_score, reverse=True)
-                                
-        unique_communities = []
-        seen_communities = set()
-
-        for comm, ls_score, quality_score in modules:
-            comm_set = set(comm)
-            if not any(comm_set <= set(other) for other in seen_communities):
-                subsets_to_remove = [other for other in seen_communities if set(other) <= comm_set]
-                unique_communities = [
-                    community for community in unique_communities
-                    if set(community[0]) not in subsets_to_remove
-                ]
-
-                seen_communities.add(tuple(comm))
-                unique_communities.append((comm, ls_score, quality_score))
-                        
-        return unique_communities
-        
-
-
-    def load_and_prepare_graph(self, file_name):
-        G = ig.Graph.Read_GML(f"{file_name}.gml")
-        
-        return G
-    
-    def find_partitions(self, graph, min_size, max_size):
-        partitions = []
-        for size in range(min_size, max_size + 1):
-            partition = la.find_partition(graph, la.ModularityVertexPartition, max_comm_size=size)
-            # partition = la.find_partition(graph, la.CPMVertexPartition, weights='process_weight', resolution_parameter=0.1, max_comm_size=size, n_iterations=-1)
-
-            avg_ls_scores = [sum(graph.vs[community]['ls_score']) / len(community) for community in partition]
-            avg_edge_weights = [self.calculate_avg_edge_weight(graph, community) for community in partition]
-                    
-            self.counter += 1
-            print(self.counter)
-            
-            partitions.append((partition, avg_ls_scores, avg_edge_weights)) 
-        return partitions
-    
-    def calculate_avg_edge_weight(self, graph, community):
-        edge_weights = []
-        processed_edges = set()
-
-        for v in community:
-            for neighbor in graph.neighbors(v, mode="all"):
-                if neighbor in community:
-                    edge_id = graph.get_eid(v, neighbor)
-                    # Ensure the edge is only added once
-                    if edge_id not in processed_edges:
-                        edge_weights.append(graph.es[edge_id]['process_weight'])
-                        processed_edges.add(edge_id)
-                        
-        return sum(edge_weights) / len(edge_weights) if edge_weights else 0
-    
-    def filter_partitions(self, partitions, min_comm_size, max_comm_size):
-        filtered_partitions = []
-        total_communities = 0
-
-        for partition, ls_scores, edge_weights in partitions:
-            total_communities += len(partition)
-            filtered_comm = [
-                (comm, ls_score, edge_weight)
-                for comm, ls_score, edge_weight in zip(partition, ls_scores, edge_weights)
-                if min_comm_size <= len(comm) <= max_comm_size
-            ]
-            unique_communities = self.remove_nested_communities(filtered_comm)
-            filtered_partitions.extend(unique_communities)
-            
-        print(total_communities, len(filtered_partitions))
-        return filtered_partitions
-            
-    def remove_nested_communities(self, communities):
-        unique_communities = []
-        seen_communities = set()
-
-        for comm, ls_score, edge_weight in communities:
-            if not any(set(tuple(comm)) <= set(other) for other in seen_communities):
-                if any(set(other) <= set(comm) for other in seen_communities):
-                    unique_communities = [
-                        community for community in unique_communities
-                        if community[0] != comm
-                    ]
-
-                seen_communities.add(tuple(comm))
-                unique_communities.append((comm, ls_score, edge_weight))
-
-        return unique_communities
-
-    def filter_and_select_partitions(self, partitions, min_comm_size, max_comm_size):
-        filtered_partitions = self.filter_partitions(partitions, min_comm_size, max_comm_size)
-            
-        top_partitions = self.select_top_partitions(filtered_partitions)
-            
-        return top_partitions
-    
-    def select_top_partitions(self, partitions):
-        ls_scores = [item[1] for item in partitions]
-        edge_weights = [item[2] for item in partitions]
-        
-        # Normalize both metrics
-        ls_scores_normalized = (ls_scores - np.min(ls_scores)) / (np.max(ls_scores) - np.min(ls_scores))
-        edge_weights_normalized = (edge_weights - np.min(edge_weights)) / (np.max(edge_weights) - np.min(edge_weights))
-
-        # Combine the normalized metrics (weighted sum, equal weight here but can be adjusted)
-        combined_scores = 0.5 * ls_scores_normalized + 0.5 * edge_weights_normalized
-
-        # Sort based on combined scores
-        sorted_indices = np.argsort(combined_scores)[::-1]
-        top_indices = sorted_indices[:20]
-
-        # Select top partitions based on combined scores
-        top_partitions = [partitions[i] for i in top_indices]
-
-        return top_partitions
-
-
     def get_labeled_modules_with_scores(self, modules, graph):
         labeled_modules = []
-        for module, ls_score, weight_score in modules:
+        for module, ls_score in modules:
             # Retrieve labels for each node ID in the module
             labels = [graph.vs[node_id]['label'] for node_id in module]  # Ensure 'label' matches the attribute name
             # Append the list of labels with the average ls_score for the module
-            labeled_modules.append((list(labels), ls_score, weight_score))
+            labeled_modules.append((list(labels), ls_score))
             
         return labeled_modules
     
-    def new_algorithm(self):
-        
-        G = self.load_and_prepare_graph(f"{self.cancer_type}_network_features")
+    def new2_algorithm(self, min_comm_size=4, max_comm_size=10):
+        GNX = nx.read_gml(f"{self.cancer_type}_network_features.gml")
+        G = ig.Graph.Read_GML(f"{self.cancer_type}_network_features.gml")
 
         # Find partitions
-        partitions = self.find_partitions(G, 4, 100)
+        partition = la.find_partition(G, la.RBConfigurationVertexPartition, weights="process_weight")
+        modules = [list(community) for community in partition]
+        
+        community_sizes = [len(community) for community in modules]
+        for i, size in enumerate(community_sizes):
+            print(f"Community {i+1} has size {size}")
+        
+        labeled_modules = []
+        for module in modules:
+            # Retrieve labels for each node ID in the module
+            labels = [G.vs[node_id]['label'] for node_id in module]  # Ensure 'label' matches the attribute name
+            # Append the list of labels with the average ls_score for the module
+            labeled_modules.append(list(labels))
+            
+        modules = []
+        for partition in labeled_modules:
+            subgraph = GNX.subgraph(partition)
+            m = self.MG_algorithm(subgraph)
+            for (module, score) in m:
+                modules.append((module, score))
+        # m = self.MG_algorithm(GNX)
+        # for (module, score) in m:
+        #     modules.append((module, score))
+        new_modules = []
+        for (module, ls_score) in modules:
+            module_set = set(module)
+            is_subset = False
+            modules_to_remove = []
+            for (existing_module, score, quality) in new_modules:
+                existing_module_set = set(existing_module)
+                if module_set.issubset(existing_module_set):
+                    is_subset = True
+                    break
+                elif existing_module_set.issubset(module_set):
+                    modules_to_remove.append(existing_module)
+            
+            # Remove any existing partitions that are supersets of the smaller_partition
+            
+            # If it's not a subset of any existing partitions, add it to the list
+            if not is_subset:
+                quality = self.module_quality(module, GNX)
+                if (quality + ls_score) / 2 > 20:
+                    new_modules.append((module, ls_score, quality))
+                    for module_to_remove in modules_to_remove:
+                        new_modules = [module for module in new_modules if sorted(module[0]) != sorted(module_to_remove)]
+        
+        to_remove = set()
 
-        # Filter and select top partitions
-        top_modules = self.filter_and_select_partitions(partitions, 4, 10)  
-        labeled_modules_with_scores = self.get_labeled_modules_with_scores(top_modules, G)    
+        for i in range(len(new_modules)):
+            for j in range(i + 1, len(new_modules)):
+                module_i, score_i, quality_i = new_modules[i]
+                module_j, score_j, quality_j = new_modules[j]
+                set_i = set(module_i)
+                set_j = set(module_j)
+                value_i = (quality_i + score_i) / 2
+                value_i = (quality_j + score_j) / 2
+                # Check if they share three or more genes
+                if len(set_i.intersection(set_j)) >= 3:
+                    if value_i < value_i:  # Compare quality
+                        to_remove.add(i)
+                    else:
+                        to_remove.add(j)
+
+        # Remove marked modules by index
+        filtered_modules = [module for idx, module in enumerate(new_modules) if idx not in to_remove]
+
+        print("len", len(new_modules))
         
-        return labeled_modules_with_scores
+        max_score = max(filtered_modules, key=lambda x: x[1])[1]
+        min_score = min(filtered_modules, key=lambda x: x[1])[1]
+
+        # To get the max and min qualities
+        max_quality = max(filtered_modules, key=lambda x: x[2])[2]
+        min_quality = min(filtered_modules, key=lambda x: x[2])[2]
+        def composite_score(module):
+            normalized_score = (module[1] - min_score) / (max_score - min_score)
+            normalized_quality = (module[2] - min_quality) / (max_quality - min_quality)
+            return (normalized_score + normalized_quality) /2
         
-    
+        filtered_modules.sort(key=composite_score, reverse=True)
+        
+        return filtered_modules
