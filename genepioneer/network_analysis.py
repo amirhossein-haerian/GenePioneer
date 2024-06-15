@@ -1,12 +1,8 @@
 import numpy as np
 import pandas as pd
-import os
+
 from scipy.spatial.distance import cdist
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import MaxAbsScaler
 
 import igraph as ig
 import leidenalg as la
@@ -29,7 +25,6 @@ class NetworkAnalysis:
     def load_data(self):
         try:
             # Load the data
-            #df = pd.read_csv(os.path.join("../tests/", f"{self.cancer_type}_network_features.csv"))
             df = pd.DataFrame.from_dict(self.feature_dict, orient='index')
             df.reset_index(inplace=True)
             df.rename(columns={'index': 'node'}, inplace=True)
@@ -228,9 +223,6 @@ class NetworkAnalysis:
             m = self.MG_algorithm(subgraph)
             for (module, score) in m:
                 modules.append((module, score))
-        # m = self.MG_algorithm(GNX)
-        # for (module, score) in m:
-        #     modules.append((module, score))
         new_modules = []
         for (module, ls_score) in modules:
             module_set = set(module)
@@ -243,10 +235,7 @@ class NetworkAnalysis:
                     break
                 elif existing_module_set.issubset(module_set):
                     modules_to_remove.append(existing_module)
-            
-            # Remove any existing partitions that are supersets of the smaller_partition
-            
-            # If it's not a subset of any existing partitions, add it to the list
+                        
             if not is_subset:
                 quality = self.module_quality(module, GNX)
                 if (quality + ls_score) / 2 > 20:
