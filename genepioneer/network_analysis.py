@@ -93,7 +93,7 @@ class NetworkAnalysis:
     def module_quality(self, module, G):
         subgraph = G.subgraph(module)
         density = nx.density(subgraph)
-        edge_weights = nx.get_edge_attributes(subgraph, 'process_weight').values()
+        edge_weights = nx.get_edge_attributes(subgraph, 'weight').values()
         if len(edge_weights) == 0:
             return 0
         average_weight = sum(edge_weights) / len(edge_weights)
@@ -203,7 +203,7 @@ class NetworkAnalysis:
         G = ig.Graph.Read_GML(f"{self.cancer_type}_network_features.gml")
 
         # Find partitions
-        partition = la.find_partition(G, la.RBConfigurationVertexPartition, weights="process_weight")
+        partition = la.find_partition(G, la.RBConfigurationVertexPartition, weights="weight")
         modules = [list(community) for community in partition]
         
         community_sizes = [len(community) for community in modules]
