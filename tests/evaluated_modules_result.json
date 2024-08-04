@@ -1,0 +1,782 @@
+{
+  "Bladder7": [
+    {
+      "module_genes": [
+        "NOA1",
+        "PIK3CA",
+        "VEGFA",
+        "AKT1",
+        "IGF1"
+      ],
+      "score1": 20.987762548761758,
+      "score2": 23.599999999999998,
+      "significant_pathways": [
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 3.083560620662162e-05
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 6.830157277564615e-05
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.0001638253798578478
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.000764350020757842
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.0007910643533413799
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.0012679393357062792
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.009251078741315324
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.03081517721297475
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "CACNB4",
+        "MAP2K1",
+        "MAPK1",
+        "MAPK3"
+      ],
+      "score1": 6.035751374147034,
+      "score2": 27.666666666666668,
+      "significant_pathways": [
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 1.5818128398420324e-05
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 4.6362993211574645e-05
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.00017815769855854147
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.00019951599152506324
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.00029617205955866034
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.001039058205351277
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.0021895717151087847
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.0036281217186794213
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.011802007827867817
+        }
+      ]
+    }
+  ],
+  "Ovary7": [
+    {
+      "module_genes": [
+        "PNKP",
+        "MAPKAPK5",
+        "RALB",
+        "IGF1",
+        "JUN",
+        "HRAS",
+        "LIG4",
+        "CDKN1A",
+        "FGF2"
+      ],
+      "score1": 12.80047672503334,
+      "score2": 17.5,
+      "significant_pathways": [
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.0002159263916448412
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.00032946682169819315
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.003503215481853689
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.004073016547736292
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.015263343803282245
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.01755603903743076
+        }
+      ]
+    }
+  ],
+  "Cervix7": [
+    {
+      "module_genes": [
+        "MAP2K1",
+        "MAPK14",
+        "IGF1R",
+        "PIK3CA",
+        "IGF1",
+        "AKT1"
+      ],
+      "score1": 20.488263154104608,
+      "score2": 26.666666666666668,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 5.925465595436063e-10
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 5.532787536146248e-07
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 1.5352893202255312e-06
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 4.4961371466982735e-06
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 1.55431749845519e-05
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 3.595691184517999e-05
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.000253481248655615
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.0008985868777332298
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.00381351064724192
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "RHOQ",
+        "MAPK3",
+        "PIK3R1",
+        "MAPK1"
+      ],
+      "score1": 10.967175821028691,
+      "score2": 30.0,
+      "significant_pathways": [
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 6.830157277564615e-05
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.00019974737162561736
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.000764350020757842
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.0008556006915611978
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.0012679393357062792
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.004416403116524237
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.015252467730957966
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.048840675494848024
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "NFASC",
+        "SLC8A2",
+        "MAPK1",
+        "PDPK1",
+        "SNCA",
+        "MAPK3",
+        "AKT1"
+      ],
+      "score1": 13.529351727452527,
+      "score2": 18.666666666666668,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 8.900652619184917e-05
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.00017450541259678558
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.0005322137253076306
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.001546118000861815
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.004684047483235989
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.0065312840960437026
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.032828573962030226
+        }
+      ]
+    }
+  ],
+  "Adrenal7": [
+    {
+      "module_genes": [
+        "SLC46A2",
+        "BRAF",
+        "MAP2K1",
+        "RAF1"
+      ],
+      "score1": 10.904529856897613,
+      "score2": 35.333333333333336,
+      "significant_pathways": [
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 4.6362993211574645e-05
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.00017815769855854147
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.00029617205955866034
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.0021895717151087847
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.007029909273487444
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.011802007827867817
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.037488161452373416
+        }
+      ]
+    }
+  ],
+  "Kidney7": [
+    {
+      "module_genes": [
+        "PBX1",
+        "RAF1",
+        "MAPK3",
+        "FGF10"
+      ],
+      "score1": 13.499784461604744,
+      "score2": 21.666666666666668,
+      "significant_pathways": [
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.004416403116524237
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.009251078741315324
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.015184562801493561
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.015252467730957966
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.03081517721297475
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.048840675494848024
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "MYO16",
+        "PIK3CB",
+        "PIK3CA",
+        "PTEN"
+      ],
+      "score1": 14.09602294505596,
+      "score2": 18.333333333333332,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.000764350020757842
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.0012679393357062792
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.015184562801493561
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.015252467730957966
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.03081517721297475
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.048840675494848024
+        }
+      ]
+    }
+  ],
+  "Corpus uteri7": [
+    {
+      "module_genes": [
+        "PIK3CB",
+        "IGF1R",
+        "AKT1",
+        "IGF1"
+      ],
+      "score1": 22.031442875467736,
+      "score2": 32.666666666666664,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 2.9170185646095293e-06
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 5.7585388737706025e-06
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 3.083560620662162e-05
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.0001638253798578478
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.0007910643533413799
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.009251078741315324
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.015184562801493561
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.03081517721297475
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "COL2A1",
+        "PLEKHA1",
+        "PIK3R1",
+        "XBP1",
+        "IGF1",
+        "PIK3CA"
+      ],
+      "score1": 15.18835872254421,
+      "score2": 17.066666666666666,
+      "significant_pathways": [
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.0007228263044678045
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.001724412376341752
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.002854404504629608
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.009871137998154438
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.022996003327332225
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.04657564827766041
+        }
+      ]
+    }
+  ],
+  "Prostate7": [
+    {
+      "module_genes": [
+        "TPTE",
+        "PIK3R1",
+        "PIK3CA",
+        "AKT1"
+      ],
+      "score1": 21.431982884293525,
+      "score2": 34.333333333333336,
+      "significant_pathways": [
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 1.5818128398420324e-05
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 4.6362993211574645e-05
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.00017815769855854147
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.00019951599152506324
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.00029617205955866034
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.001039058205351277
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.0036281217186794213
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.011802007827867817
+        }
+      ]
+    }
+  ],
+  "Brain7": [],
+  "Liver7": [
+    {
+      "module_genes": [
+        "AGRP",
+        "MAPK14",
+        "PIK3R1",
+        "AKT1",
+        "IGF1"
+      ],
+      "score1": 20.10692658386306,
+      "score2": 19.2,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 1.31529734936561e-05
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.00015508316633131787
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.002854404504629608
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.009871137998154438
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.02055433950362328
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.03371979842938132
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.04657564827766041
+        }
+      ]
+    }
+  ],
+  "Thyroid7": [
+    {
+      "module_genes": [
+        "PRDX2",
+        "MAP2K1",
+        "RAF1",
+        "BRAF"
+      ],
+      "score1": 12.682230401599018,
+      "score2": 37.666666666666664,
+      "significant_pathways": [
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 4.6362993211574645e-05
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.00017815769855854147
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.00029617205955866034
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.0021895717151087847
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.007029909273487444
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.011802007827867817
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.037488161452373416
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "FABP4",
+        "IGF1R",
+        "PIK3R1",
+        "AKT1"
+      ],
+      "score1": 23.673422350074702,
+      "score2": 26.666666666666668,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.000764350020757842
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.0012679393357062792
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.004416403116524237
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.015184562801493561
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.015252467730957966
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.03081517721297475
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 0.048840675494848024
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "PCDH12",
+        "MAP2K1",
+        "EDN1",
+        "MAPK3",
+        "BRAF",
+        "MAPK1"
+      ],
+      "score1": 10.539895256317354,
+      "score2": 31.46666666666666,
+      "significant_pathways": [
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 2.175757568843552e-06
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 1.31529734936561e-05
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 2.5906019041934325e-05
+        },
+        {
+          "name": "Pathways in cancer",
+          "p_value": 4.4531483245295916e-05
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.00015508316633131787
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.0003702349521017488
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.001929416517800947
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.009871137998154438
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.03371979842938132
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "RHOQ",
+        "PIK3R3",
+        "IRS1",
+        "INSR",
+        "INS",
+        "AKT1"
+      ],
+      "score1": 16.2230473915893,
+      "score2": 24.933333333333334,
+      "significant_pathways": [
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 2.3628499474372005e-07
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 5.532787536146248e-07
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 3.595691184517999e-05
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.00040398320726079773
+        },
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.034339689469327146
+        },
+        {
+          "name": "MAPK signaling pathway",
+          "p_value": 0.04002906050091037
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "PRDX1",
+        "MAP2K1",
+        "PIK3CA",
+        "RAF1",
+        "CAV1"
+      ],
+      "score1": 14.210641355915495,
+      "score2": 17.8,
+      "significant_pathways": [
+        {
+          "name": "VEGF signaling pathway",
+          "p_value": 0.00015508316633131787
+        },
+        {
+          "name": "ErbB signaling pathway",
+          "p_value": 0.00045253244939048496
+        },
+        {
+          "name": "FoxO signaling pathway",
+          "p_value": 0.001724412376341752
+        },
+        {
+          "name": "Estrogen signaling pathway",
+          "p_value": 0.001929416517800947
+        },
+        {
+          "name": "mTOR signaling pathway",
+          "p_value": 0.002854404504629608
+        },
+        {
+          "name": "Ras signaling pathway",
+          "p_value": 0.009871137998154438
+        },
+        {
+          "name": "PI3K-Akt signaling pathway",
+          "p_value": 0.03371979842938132
+        }
+      ]
+    }
+  ],
+  "Colon7": [],
+  "Skin7": []
+}
