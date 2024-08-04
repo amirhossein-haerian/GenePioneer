@@ -134,6 +134,7 @@ class NetworkAnalysis:
         self.counter = 0
         while nodes_to_process:
             seed = max(nodes_to_process, key=lambda node: G.nodes[node]['ls_score'])
+            # seed = random.choice(list(nodes_to_process))
             module = [seed]
             nodes_to_process.remove(seed)
 
@@ -148,7 +149,7 @@ class NetworkAnalysis:
                 x = random.uniform(0, 1)
                 avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module])
                 adjacent_nodes = self.find_neighborhood(G, module)
-                next_node = ""
+                next_node = None
                     
                 if len(adjacent_nodes) == 0:
                     break
@@ -156,10 +157,13 @@ class NetworkAnalysis:
                 eligible_nodes = [node for node in adjacent_nodes if G.nodes[node]['ls_score'] > avg_weight]
                 
                 if eligible_nodes:
-                    participation_counts = np.array([node_participation[node] for node in eligible_nodes])
-                    weights = np.exp(-participation_counts)
-                    probabilities = weights / weights.sum()
-                    next_node = np.random.choice(eligible_nodes, p=probabilities)
+                    np.random.shuffle(eligible_nodes)
+                    for node in eligible_nodes[:20]:
+                        next_node = node
+                        new_module = module + [node]
+                        new_modularity = self.module_quality(new_module, G)
+                        if new_modularity > current_modularity:
+                            break
                 else:
                     node = max(adjacent_nodes, key=lambda node: G.nodes[node]['ls_score'])
                     if x < np.exp((G.nodes[node]['ls_score'] - avg_weight) / current_T):
@@ -217,12 +221,16 @@ class NetworkAnalysis:
             # Append the list of labels with the average ls_score for the module
             labeled_modules.append(list(labels))
             
+        # modules = []
+        # for partition in labeled_modules:
+        #     subgraph = GNX.subgraph(partition)
+        #     m = self.MG_algorithm(subgraph)
+        #     for (module, score) in m:
+        #         modules.append((module, score))
         modules = []
-        for partition in labeled_modules:
-            subgraph = GNX.subgraph(partition)
-            m = self.MG_algorithm(subgraph)
-            for (module, score) in m:
-                modules.append((module, score))
+        m = self.MG_algorithm(GNX)
+        for (module, score) in m:
+            modules.append((module, score))
         new_modules = []
         for (module, ls_score) in modules:
             module_set = set(module)
@@ -238,7 +246,7 @@ class NetworkAnalysis:
                         
             if not is_subset:
                 quality = self.module_quality(module, GNX)
-                if (quality + ls_score) / 2 > 20:
+                if (quality + ls_score) / 2 > 15:
                     new_modules.append((module, ls_score, quality))
                     for module_to_remove in modules_to_remove:
                         new_modules = [module for module in new_modules if sorted(module[0]) != sorted(module_to_remove)]
@@ -252,10 +260,10 @@ class NetworkAnalysis:
                 set_i = set(module_i)
                 set_j = set(module_j)
                 value_i = (quality_i + score_i) / 2
-                value_i = (quality_j + score_j) / 2
+                value_j = (quality_j + score_j) / 2
                 # Check if they share three or more genes
                 if len(set_i.intersection(set_j)) >= 3:
-                    if value_i < value_i:  # Compare quality
+                    if score_i < score_j:  # Compare quality
                         to_remove.add(i)
                     else:
                         to_remove.add(j)
