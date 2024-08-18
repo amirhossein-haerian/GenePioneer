@@ -20,8 +20,8 @@ setup(
         'scipy',
         'scikit-learn',
         'igraph',
-        'leidenalg'
-        
+        'leidenalg',
+        'gprofiler'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
