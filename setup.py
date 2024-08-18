@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='genepioneer',
-    version='0.1.2',
+    version='0.1.3',
     description='A Python package for identifying essential genes in cancer.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -21,7 +21,6 @@ setup(
         'scikit-learn',
         'igraph',
         'leidenalg',
-        'gprofiler',
         'matplotlib',
         'gprofiler-official'
     ],
