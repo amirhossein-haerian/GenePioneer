@@ -21,12 +21,17 @@ setup(
         'scikit-learn',
         'igraph',
         'leidenalg',
-        'gprofiler'
+        'gprofiler',
+        'matplotlib',
+        'gprofiler-official'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
+    package_data={
+        'genepioneer': ['Data/**/*', 'Data/**/**/*'],  
+    },
     keywords='cancer, genomics, gene-analysis',
 )

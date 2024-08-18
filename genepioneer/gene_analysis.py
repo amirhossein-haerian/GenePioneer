@@ -2,6 +2,7 @@ import json
 import pandas as pd
 
 import networkx as nx
+import pkg_resources
 
 class GeneAnalysis:
 
@@ -15,14 +16,16 @@ class GeneAnalysis:
                 
 
     def load_genes(self):
-        df = pd.read_csv(f"../Data/cancer-gene-data/{self.cancer_type}_network_features.csv")
+        data_path = pkg_resources.resource_filename(__name__, f"Data/cancer-gene-data/{self.cancer_type}_network_features.csv")
+        df = pd.read_csv(data_path)
 
         gene_data = df.to_dict(orient='records')
     
         return gene_data
     
     def load_modules(self):
-        with open(f"../Data/module-data/{self.cancer_type}.json", 'r') as file:
+        data_path = pkg_resources.resource_filename(__name__, f"Data/module-data/{self.cancer_type}.json")
+        with open(data_path, 'r') as file:
             data = json.load(file)
         
         modules = {}
