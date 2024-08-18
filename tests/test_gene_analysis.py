@@ -8,5 +8,5 @@ import json
 # "Adrenal", "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"
 cancers = ["Bladder"]
 
-gene_analysis = GeneAnalysis("Bladder", "../tests/input.txt")
+gene_analysis = GeneAnalysis("Ovary", "../Data/benchmark-data/CGC.txt")
 gene_analysis.analyze_genes()
