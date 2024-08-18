@@ -164,7 +164,7 @@ class Evaluation:
                 (enrichment_results['p_value'] <= 0.05) & 
                 (enrichment_results['native'].isin(pathways_of_interest))
             ]
-            if len(significant_pathways) > 5:
+            if len(significant_pathways) >= 2:
                 return {
                     'module_genes': genes,
                     'score1': score1,
