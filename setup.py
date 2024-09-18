@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='genepioneer',
-    version='1.0.0',
+    version='1.0.1',
     description='A Python package for identifying essential genes in cancer.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
