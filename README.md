@@ -1,6 +1,6 @@
 First, the user needs to install the package; this can be done easily by this command on python environment: 
 
-"pip install genepioneer"
+<pip install genepioneer>
 
 Then you need to create a python file somewhere in your local environment, we assume that you have created a file called "gene_analyze.py"
 Inside the "gene_analyze.py" you need to import the Python class that is designed for analyzing genes, this can be done like this:
