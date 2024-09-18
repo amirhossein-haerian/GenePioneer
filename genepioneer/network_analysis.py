@@ -93,34 +93,12 @@ class NetworkAnalysis:
     def module_quality(self, module, G):
         subgraph = G.subgraph(module)
         density = nx.density(subgraph)
-        edge_weights = nx.get_edge_attributes(subgraph, 'process_weight').values()
+        edge_weights = nx.get_edge_attributes(subgraph, 'weight').values()
         if len(edge_weights) == 0:
             return 0
         average_weight = sum(edge_weights) / len(edge_weights)
         return density * average_weight
 
-    def modularity(self, module, G):
-        subgraph = G.subgraph(module)
-        
-        # Internal Density
-        internal_density = nx.density(subgraph)
-        
-        # Conductance
-        cut_edges = nx.cut_size(G, module)
-        conductance = cut_edges / (2 * len(module))
-        
-        # Expansion
-        expansion = cut_edges / len(module)
-        
-        # Cut Ratio
-        cut_ratio = cut_edges / (len(module) * (len(G.nodes()) - len(module)))
-        
-        # Combining all metrics into a single quality score
-        # Adjust the weights as needed based on the importance of each metric
-        quality_score = (internal_density + (1 - conductance) + (1 - expansion) + (1 - cut_ratio)) / 4
-        
-        return quality_score  
-      
     def MG_algorithm(self, G, T=10, T_low=1, min_comm_size=4, max_comm_size=10, threshold=0.9):                
         modules = []
         nodes_to_process = set(G.nodes())
@@ -192,41 +170,9 @@ class NetworkAnalysis:
         
         return modules
         
-    def get_labeled_modules_with_scores(self, modules, graph):
-        labeled_modules = []
-        for module, ls_score in modules:
-            # Retrieve labels for each node ID in the module
-            labels = [graph.vs[node_id]['label'] for node_id in module]  # Ensure 'label' matches the attribute name
-            # Append the list of labels with the average ls_score for the module
-            labeled_modules.append((list(labels), ls_score))
-            
-        return labeled_modules
     
-    def new2_algorithm(self, min_comm_size=4, max_comm_size=10):
+    def module_detection(self, min_comm_size=4, max_comm_size=10):
         GNX = nx.read_gml(f"{self.cancer_type}_network_features.gml")
-        G = ig.Graph.Read_GML(f"{self.cancer_type}_network_features.gml")
-
-        # Find partitions
-        partition = la.find_partition(G, la.RBConfigurationVertexPartition, weights="process_weight")
-        modules = [list(community) for community in partition]
-        
-        community_sizes = [len(community) for community in modules]
-        for i, size in enumerate(community_sizes):
-            print(f"Community {i+1} has size {size}")
-        
-        labeled_modules = []
-        for module in modules:
-            # Retrieve labels for each node ID in the module
-            labels = [G.vs[node_id]['label'] for node_id in module]  # Ensure 'label' matches the attribute name
-            # Append the list of labels with the average ls_score for the module
-            labeled_modules.append(list(labels))
-            
-        # modules = []
-        # for partition in labeled_modules:
-        #     subgraph = GNX.subgraph(partition)
-        #     m = self.MG_algorithm(subgraph)
-        #     for (module, score) in m:
-        #         modules.append((module, score))
         modules = []
         m = self.MG_algorithm(GNX)
         for (module, score) in m:

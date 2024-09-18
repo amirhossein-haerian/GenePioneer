@@ -1,8 +1,6 @@
 import numpy as np
 import networkx as nx
 from collections import defaultdict
-import scipy.sparse
-import scipy.sparse.csgraph
 import csv
 
 from .data_loader import DataLoader
@@ -21,39 +19,27 @@ class NetworkBuilder:
 
     def build_network(self):
         self.edge_adder()  
-        self.calculate_edge_weight()      
         return self.graph
 
 
     def edge_adder(self):
             frequent_genes = self.genes_with_cases.keys()
-            print("len: ", len(frequent_genes))
             for f_gene in frequent_genes:
                 for process in self.genes_with_processes[f_gene]:
-                    process_specificity = 1 / len(self.processes_with_genes[process])
                     for gene in self.processes_with_genes[process]:
                         for gene_to_connect in self.processes_with_genes[process]:
                             if gene != gene_to_connect: 
                                 if not self.graph.has_edge(gene, gene_to_connect):
                                     attributes = {
-                                        'weight': process_specificity,
-                                        'process_weight':  1
+                                        'weight':  1
                                         }
                                     self.graph.add_edge(gene, gene_to_connect, **attributes)
                                 else: 
-                                    self.graph[gene][gene_to_connect]['weight'] += process_specificity
-                                    self.graph[gene][gene_to_connect]['process_weight'] += 1
-    
-    def calculate_edge_weight(self):
-        process_weights = np.array([data['process_weight'] for _, _, data in self.graph.edges(data=True)])
-        for i, (u, v, data) in enumerate(self.graph.edges(data=True)):
-            data['inverted_weight'] = 1 / process_weights[i]
-            
-        print("edge weights calculated")
+                                    self.graph[gene][gene_to_connect]['weight'] += 1
     
 
     def weight_node(self, gi):
-        total_weight = sum(data['process_weight'] for _, _, data in self.graph.edges(gi, data=True))
+        total_weight = sum(data['weight'] for _, _, data in self.graph.edges(gi, data=True))
         return total_weight
     
     def weight_nodes(self, graph):
@@ -69,7 +55,7 @@ class NetworkBuilder:
         
         for neighbor in self.graph.neighbors(node):
             if neighbor in copy_of_weights:
-                edge_weight = self.graph[node][neighbor].get('process_weight', 0)
+                edge_weight = self.graph[node][neighbor].get('weight', 0)
                 copy_of_weights[neighbor] -= edge_weight
                 copy_of_weights[neighbor] = max(copy_of_weights[neighbor], 1e-9)
         
