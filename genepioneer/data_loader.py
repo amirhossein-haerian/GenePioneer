@@ -4,10 +4,10 @@ from itertools import combinations
 from collections import defaultdict
 
 class DataLoader:
-    def __init__(self, cancer_type):
+    def __init__(self, cancer_type, file_path):
         self.cancer_type = cancer_type
-        self.TCGA_data_path = os.path.join("../GenesData/", self.cancer_type)
-        self.IBM_data_path = os.path.join("../GenesData/IBP_GO_Terms.xlsx")
+        self.TCGA_data_path = os.path.join(file_path, self.cancer_type)
+        self.IBM_data_path = os.path.join(f"{file_path}/IBP_GO_Terms.xlsx")
 
 
     def load_TCGA(self):
