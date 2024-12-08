@@ -18,7 +18,7 @@ from scipy.stats import mannwhitneyu
 from genepioneer import DataLoader
 
 class Evaluation:
-    def __init__(self):
+    def __init__(self, data_path):
         self.gp = GProfiler(return_dataframe=True)
         
         self.benchmark_genes = self.read_benchmark_genes("../Data/benchmark-data")
@@ -26,6 +26,7 @@ class Evaluation:
         self.modules = self.read_modules("../Data/module-data")
         self.result = self.eval(self.network_genes, self.benchmark_genes)
         self.module_results = self.evaluate_modules(self.modules)
+        self.data_path = data_path
     
     def read_modules(self, benchmark_folder):
         benchmark_genes = {}
@@ -59,7 +60,7 @@ class Evaluation:
         for filepath in glob.glob(os.path.join(network_folder, '*.csv')):
             cancer_type = os.path.basename(filepath).split('.')[0]
             cancer_type = cancer_type.replace('_network_features', '')
-            data_loader = DataLoader(cancer_type)
+            data_loader = DataLoader(cancer_type, self.data_path)
             genes_with_cases, cases_with_genes, total_cases = data_loader.load_TCGA()
             genes = list(genes_with_cases.keys())
             network_genes[cancer_type] = genes

@@ -7,10 +7,10 @@ from .data_loader import DataLoader
 from .network_analysis import NetworkAnalysis
 
 class NetworkBuilder:
-    def __init__(self, cancer_type):
+    def __init__(self, cancer_type, data_path):
         self.cancer_type = cancer_type
         self.graph = nx.Graph()
-        data_loader = DataLoader(self.cancer_type)
+        data_loader = DataLoader(self.cancer_type, data_path)
 
         self.genes_with_cases ,self.cases_with_genes, self.total_cases = data_loader.load_TCGA()
         self.genes_with_processes, self.processes_with_genes, self.total_processes = data_loader.load_IBM()
