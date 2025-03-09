@@ -18,12 +18,16 @@ from scipy.stats import mannwhitneyu
 from genepioneer import DataLoader
 
 class Evaluation:
-    def __init__(self, data_path):
+    def __init__(self, data_path, cancer_gene_path=None, module_data_path=None, benchmark_data_path=None):
         self.gp = GProfiler(return_dataframe=True)
         
-        self.benchmark_genes = self.read_benchmark_genes("../Data/benchmark-data")
-        self.network_genes = self.read_network_genes("../Data/cancer-gene-data")
-        self.modules = self.read_modules("../Data/module-data")
+        self.cancer_gene_path = cancer_gene_path or "../Data/cancer-gene-data"
+        self.module_data_path = module_data_path or "../Data/module-data"
+        self.benchmark_data_path = benchmark_data_path or "../Data/benchmark-data"
+
+        self.benchmark_genes = self.read_benchmark_genes(self.benchmark_data_path)
+        self.network_genes = self.read_network_genes(self.cancer_gene_path)
+        self.modules = self.read_modules(self.module_data_path)
         self.result = self.eval(self.network_genes, self.benchmark_genes)
         self.module_results = self.evaluate_modules(self.modules)
         self.data_path = data_path
