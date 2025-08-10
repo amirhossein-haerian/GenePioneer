@@ -99,7 +99,7 @@ class NetworkAnalysis:
         average_weight = sum(edge_weights) / len(edge_weights)
         return density * average_weight
 
-    def MG_algorithm(self, G, T=10, T_low=1, min_comm_size=4, max_comm_size=10, threshold=0.9):                
+    def MG_algorithm(self, G, T=10, T_low=1, min_comm_size=2, max_comm_size=10, threshold=0.9):                
         modules = []
         nodes_to_process = set(G.nodes())
         node_participation = defaultdict(int)
@@ -171,7 +171,7 @@ class NetworkAnalysis:
         return modules
         
     
-    def module_detection(self, min_comm_size=4, max_comm_size=10):
+    def module_detection(self, min_comm_size=2, max_comm_size=10):
         GNX = nx.read_gml(f"{self.cancer_type}_network_features.gml")
         modules = []
         m = self.MG_algorithm(GNX)

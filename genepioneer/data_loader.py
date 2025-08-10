@@ -11,34 +11,25 @@ class DataLoader:
 
 
     def load_TCGA(self):
-        genes_with_cases = defaultdict(set)
-
         genes_list_file_path = os.path.join(self.TCGA_data_path, f"{self.cancer_type}.tsv")
         genes_df = pd.read_csv(genes_list_file_path, sep='\t')
-        genes_list = genes_df["Symbol"].tolist()
-        # 👆 the list of 200 most significant genes for the chosen cancer type
+        # Support different capitalizations of the column containing gene names
+        # The original dataset used "Symbol" but newer TSV files might use
+        # lowercase "symbol".  Try to find the correct column in a
+        # case-insensitive manner.
+        symbol_column = None
+        for col in genes_df.columns:
+            if col.lower() == "symbol":
+                symbol_column = col
+                break
 
-        for gene in genes_list:
-            gene_path = os.path.join(self.TCGA_data_path, gene)
-            case_list_file_path = os.path.join(gene_path, f"{gene}.tsv")
-            cases_df = pd.read_csv(case_list_file_path, sep='\t')
-            cases_list = cases_df["Case ID"].tolist()
+        if symbol_column is None:
+            raise KeyError(
+                "The genes list file must contain a 'symbol' column"
+            )
 
-            # 👆 list of cases for each gene inside the list of genes for chosen cancer
-
-            for case in cases_list:
-                if "TCGA" in case: 
-                    genes_with_cases[gene].add(case)
-                    # 👆 list of cases that are related to TCGA will be appended to cases related to gene under process
-
-        cases_with_genes = defaultdict(set)
-        for gene, cases in genes_with_cases.items():
-            for case in cases:
-                cases_with_genes[case].add(gene)
-
-        total_cases = len(cases_with_genes)
-        
-        return genes_with_cases, cases_with_genes, total_cases
+        genes = genes_df[symbol_column].dropna().tolist()
+        return genes
     
     def load_IBM(self):
         processes_with_genes = defaultdict(set)

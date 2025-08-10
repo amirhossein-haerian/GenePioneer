@@ -12,10 +12,12 @@ class NetworkBuilder:
         self.graph = nx.Graph()
         data_loader = DataLoader(self.cancer_type, data_path)
 
-        self.genes_with_cases ,self.cases_with_genes, self.total_cases = data_loader.load_TCGA()
+        self.genes = data_loader.load_TCGA()
         self.genes_with_processes, self.processes_with_genes, self.total_processes = data_loader.load_IBM()
                 
         self.all_features = defaultdict(dict)
+        
+        print("built")
 
     def build_network(self):
         self.edge_adder()  
@@ -23,7 +25,7 @@ class NetworkBuilder:
 
 
     def edge_adder(self):
-            frequent_genes = self.genes_with_cases.keys()
+            frequent_genes = self.genes
             for f_gene in frequent_genes:
                 for process in self.genes_with_processes[f_gene]:
                     for gene in self.processes_with_genes[process]:
