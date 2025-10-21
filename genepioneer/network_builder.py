@@ -7,17 +7,32 @@ from .data_loader import DataLoader
 from .network_analysis import NetworkAnalysis
 
 class NetworkBuilder:
-    def __init__(self, cancer_type, data_path):
+    def __init__(self, cancer_type, data_path, genes_list=None):
+        """
+        Initialize NetworkBuilder
+        
+        Args:
+            cancer_type: Type of cancer (used for naming)
+            data_path: Path to data directory
+            genes_list: Optional list of genes. If None, loads from TCGA data
+        """
         self.cancer_type = cancer_type
         self.graph = nx.Graph()
-        data_loader = DataLoader(self.cancer_type, data_path)
+        data_loader = DataLoader(cancer_type, data_path)
 
-        self.genes = data_loader.load_TCGA()
+        # Use provided gene list or load from TCGA
+        if genes_list is not None:
+            self.genes = genes_list
+            print(f"Using provided gene list: {len(genes_list)} genes")
+        else:
+            self.genes = data_loader.load_TCGA()
+            print(f"Loaded genes from TCGA: {len(self.genes)} genes")
+            
         self.genes_with_processes, self.processes_with_genes, self.total_processes = data_loader.load_IBM()
                 
         self.all_features = defaultdict(dict)
         
-        print("built")
+        print("NetworkBuilder initialized")
 
     def build_network(self):
         self.edge_adder()  

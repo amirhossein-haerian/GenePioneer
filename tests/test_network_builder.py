@@ -5,7 +5,7 @@ import pandas as pd
 import networkx as nx
 
 # "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"
-cancer = "Prostate_low"
+cancer = "Prostate_filtered"
 
 print("Working on: ", cancer)
 try:

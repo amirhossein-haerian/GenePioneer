@@ -1,0 +1,266 @@
+CHD1L AND DPF2 MODULE ANALYSIS
+==================================================
+Network Size: 3,812 genes
+==================================================
+🎯 PRIORITY GENE RESULTS:
+   • CHD1L modules: 5
+   • DPF2 modules: 4
+   • Total priority modules: 9
+
+🧬 CHD1L MODULES (5 modules):
+----------------------------------------
+
+Module 1: ['CHD1L', 'GATA3', 'PTEN', 'PIK3CA', 'EDN1']
+Score: 8857.1
+Significant pathways: 8
+  1. HALLMARK_COMPLEMENT
+     p-value: 9.75e-04
+     Enrichment: 40.0x
+     Genes: GATA3, PIK3CA
+  2. HALLMARK_APICAL_SURFACE
+     p-value: 1.10e-02
+     Enrichment: 90.9x
+     Genes: GATA3
+  3. HALLMARK_PI3K_AKT_MTOR_SIGNALING
+     p-value: 2.60e-02
+     Enrichment: 38.1x
+     Genes: PTEN
+  4. HALLMARK_UV_RESPONSE_DN
+     p-value: 3.55e-02
+     Enrichment: 27.8x
+     Genes: PTEN
+  5. HALLMARK_APICAL_JUNCTION
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: PTEN
+  6. HALLMARK_INFLAMMATORY_RESPONSE
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: EDN1
+  7. HALLMARK_KRAS_SIGNALING_DN
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: EDN1
+  8. HALLMARK_TNFA_SIGNALING_VIA_NFKB
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: EDN1
+
+Module 2: ['CHD1L', 'FOXA1', 'GATA3']
+Score: 466.7
+Significant pathways: 2
+  1. HALLMARK_APICAL_SURFACE
+     p-value: 6.59e-03
+     Enrichment: 151.5x
+     Genes: GATA3
+  2. HALLMARK_COMPLEMENT
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: GATA3
+
+Module 3: ['CHD1L', 'FOXA1', 'GATA3']
+Score: 466.7
+Significant pathways: 2
+  1. HALLMARK_APICAL_SURFACE
+     p-value: 6.59e-03
+     Enrichment: 151.5x
+     Genes: GATA3
+  2. HALLMARK_COMPLEMENT
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: GATA3
+
+Module 4: ['CHD1L', 'GATA3', 'SOX9']
+Score: 200.0
+Significant pathways: 4
+  1. HALLMARK_APICAL_SURFACE
+     p-value: 6.59e-03
+     Enrichment: 151.5x
+     Genes: GATA3
+  2. HALLMARK_COMPLEMENT
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: GATA3
+  3. HALLMARK_GLYCOLYSIS
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: SOX9
+  4. HALLMARK_KRAS_SIGNALING_UP
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: SOX9
+
+Module 5: ['CHD1L', 'RUVBL2', 'EOMES']
+Score: 200.0
+Significant pathways: 2
+  1. HALLMARK_IL2_STAT5_SIGNALING
+     p-value: 2.96e-02
+     Enrichment: 33.5x
+     Genes: EOMES
+  2. HALLMARK_MYC_TARGETS_V1
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: RUVBL2
+
+CHD1L Summary: 18 total pathway enrichments
+
+🧬 DPF2 MODULES (4 modules):
+----------------------------------------
+
+Module 1: ['DPF2', 'GATA3', 'PTEN', 'PIK3CA', 'EDN1']
+Score: 8857.1
+Significant pathways: 8
+  1. HALLMARK_COMPLEMENT
+     p-value: 9.75e-04
+     Enrichment: 40.0x
+     Genes: GATA3, PIK3CA
+  2. HALLMARK_APICAL_SURFACE
+     p-value: 1.10e-02
+     Enrichment: 90.9x
+     Genes: GATA3
+  3. HALLMARK_PI3K_AKT_MTOR_SIGNALING
+     p-value: 2.60e-02
+     Enrichment: 38.1x
+     Genes: PTEN
+  4. HALLMARK_UV_RESPONSE_DN
+     p-value: 3.55e-02
+     Enrichment: 27.8x
+     Genes: PTEN
+  5. HALLMARK_APICAL_JUNCTION
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: PTEN
+  6. HALLMARK_INFLAMMATORY_RESPONSE
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: EDN1
+  7. HALLMARK_KRAS_SIGNALING_DN
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: EDN1
+  8. HALLMARK_TNFA_SIGNALING_VIA_NFKB
+     p-value: 4.90e-02
+     Enrichment: 20.0x
+     Genes: EDN1
+
+Module 2: ['DPF2', 'FOXA1', 'GATA3']
+Score: 466.7
+Significant pathways: 2
+  1. HALLMARK_APICAL_SURFACE
+     p-value: 6.59e-03
+     Enrichment: 151.5x
+     Genes: GATA3
+  2. HALLMARK_COMPLEMENT
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: GATA3
+
+Module 3: ['DPF2', 'FOXA1', 'GATA3']
+Score: 466.7
+Significant pathways: 2
+  1. HALLMARK_APICAL_SURFACE
+     p-value: 6.59e-03
+     Enrichment: 151.5x
+     Genes: GATA3
+  2. HALLMARK_COMPLEMENT
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: GATA3
+
+Module 4: ['DPF2', 'GATA3', 'SOX9']
+Score: 200.0
+Significant pathways: 4
+  1. HALLMARK_APICAL_SURFACE
+     p-value: 6.59e-03
+     Enrichment: 151.5x
+     Genes: GATA3
+  2. HALLMARK_COMPLEMENT
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: GATA3
+  3. HALLMARK_GLYCOLYSIS
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: SOX9
+  4. HALLMARK_KRAS_SIGNALING_UP
+     p-value: 2.97e-02
+     Enrichment: 33.3x
+     Genes: SOX9
+
+DPF2 Summary: 16 total pathway enrichments
+
+📊 COMBINED PRIORITY GENE ANALYSIS:
+----------------------------------------
+Total priority gene enrichments: 34
+
+🏆 TOP 10 PRIORITY GENE ENRICHMENTS:
+
+ 1. HALLMARK_COMPLEMENT (CHD1L)
+    p-value: 9.75e-04
+    Enrichment: 40.0x
+    Module: ['CHD1L', 'GATA3', 'PTEN', 'PIK3CA', 'EDN1']
+    Overlap genes: GATA3, PIK3CA
+
+ 2. HALLMARK_COMPLEMENT (DPF2)
+    p-value: 9.75e-04
+    Enrichment: 40.0x
+    Module: ['DPF2', 'GATA3', 'PTEN', 'PIK3CA', 'EDN1']
+    Overlap genes: GATA3, PIK3CA
+
+ 3. HALLMARK_APICAL_SURFACE (CHD1L)
+    p-value: 6.59e-03
+    Enrichment: 151.5x
+    Module: ['CHD1L', 'FOXA1', 'GATA3']
+    Overlap genes: GATA3
+
+ 4. HALLMARK_APICAL_SURFACE (CHD1L)
+    p-value: 6.59e-03
+    Enrichment: 151.5x
+    Module: ['CHD1L', 'FOXA1', 'GATA3']
+    Overlap genes: GATA3
+
+ 5. HALLMARK_APICAL_SURFACE (CHD1L)
+    p-value: 6.59e-03
+    Enrichment: 151.5x
+    Module: ['CHD1L', 'GATA3', 'SOX9']
+    Overlap genes: GATA3
+
+ 6. HALLMARK_APICAL_SURFACE (DPF2)
+    p-value: 6.59e-03
+    Enrichment: 151.5x
+    Module: ['DPF2', 'FOXA1', 'GATA3']
+    Overlap genes: GATA3
+
+ 7. HALLMARK_APICAL_SURFACE (DPF2)
+    p-value: 6.59e-03
+    Enrichment: 151.5x
+    Module: ['DPF2', 'FOXA1', 'GATA3']
+    Overlap genes: GATA3
+
+ 8. HALLMARK_APICAL_SURFACE (DPF2)
+    p-value: 6.59e-03
+    Enrichment: 151.5x
+    Module: ['DPF2', 'GATA3', 'SOX9']
+    Overlap genes: GATA3
+
+ 9. HALLMARK_APICAL_SURFACE (CHD1L)
+    p-value: 1.10e-02
+    Enrichment: 90.9x
+    Module: ['CHD1L', 'GATA3', 'PTEN', 'PIK3CA', 'EDN1']
+    Overlap genes: GATA3
+
+10. HALLMARK_APICAL_SURFACE (DPF2)
+    p-value: 1.10e-02
+    Enrichment: 90.9x
+    Module: ['DPF2', 'GATA3', 'PTEN', 'PIK3CA', 'EDN1']
+    Overlap genes: GATA3
+
+📈 MOST FREQUENT PATHWAYS IN PRIORITY MODULES:
+   1. HALLMARK_COMPLEMENT: 8 enrichments
+   2. HALLMARK_APICAL_SURFACE: 8 enrichments
+   3. HALLMARK_PI3K_AKT_MTOR_SIGNALING: 2 enrichments
+   4. HALLMARK_GLYCOLYSIS: 2 enrichments
+   5. HALLMARK_KRAS_SIGNALING_UP: 2 enrichments
+   6. HALLMARK_UV_RESPONSE_DN: 2 enrichments
+   7. HALLMARK_APICAL_JUNCTION: 2 enrichments
+   8. HALLMARK_INFLAMMATORY_RESPONSE: 2 enrichments

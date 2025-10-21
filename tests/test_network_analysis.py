@@ -6,7 +6,7 @@ import json
 
 
 # "Adrenal", "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"
-cancers = ["Prostate_low"]
+cancers = ["Prostate_filtered"]
 
 def analysis(cancer):
     print("Working on: ",cancer)

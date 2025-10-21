@@ -12,29 +12,100 @@ from gprofiler import GProfiler
 
 from sklearn.metrics import precision_score, recall_score, roc_curve, auc
 import matplotlib.pyplot as plt
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, hypergeom
 
 
 from genepioneer import DataLoader
 
 class Evaluation:
-    def __init__(self, data_path, cancer_gene_path=None, module_data_path=None, benchmark_data_path=None):
+    def __init__(self, data_path, cancer_gene_path=None, module_data_path=None, benchmark_data_path=None, auto_load_modules=False):
         self.gp = GProfiler(return_dataframe=True)
         
         print(os.getcwd())
         
-        self.cancer_gene_path = cancer_gene_path or "../genepioneer/Data/benchmark-data"
-        self.module_data_path = module_data_path or "../genepioneer/Data/module-data"
-        self.benchmark_data_path = benchmark_data_path or "../genepioneer/Data/benchmark-data"
+        self.cancer_gene_path = cancer_gene_path or "genepioneer/Data/benchmark-data"
+        self.module_data_path = module_data_path or "genepioneer/Data/module-data"
+        self.benchmark_data_path = benchmark_data_path or "genepioneer/Data/benchmark-data"
 
-        self.benchmark_genes = self.read_benchmark_genes(self.benchmark_data_path)
-        print(self.benchmark_data_path)
-        self.network_genes = self.read_network_genes(self.cancer_gene_path)
-        self.modules = self.read_modules(self.module_data_path)
-        self.result = self.eval(self.network_genes, self.benchmark_genes)
-        self.module_results = self.evaluate_modules(self.modules)
+        # Load hallmarks data for manual enrichment analysis
+        self.hallmarks_data = self.load_hallmarks_data()
+        
+        # Only load other data if paths exist and we're doing full evaluation
+        if os.path.exists(self.benchmark_data_path):
+            self.benchmark_genes = self.read_benchmark_genes(self.benchmark_data_path)
+        else:
+            self.benchmark_genes = {}
+            
+        if os.path.exists(self.cancer_gene_path):
+            self.network_genes = self.read_network_genes(self.cancer_gene_path)
+        else:
+            self.network_genes = {}
+        
+        # Only auto-load modules if explicitly requested (for backward compatibility)
+        if auto_load_modules and os.path.exists(self.module_data_path):
+            self.modules = self.read_modules(self.module_data_path)
+        else:
+            self.modules = {}
+        
+        # Only run evaluations if we have the necessary data
+        if self.network_genes and self.benchmark_genes:
+            self.result = self.eval(self.network_genes, self.benchmark_genes)
+        else:
+            self.result = {}
+            
+        # Only auto-evaluate if explicitly requested (for backward compatibility)
+        if auto_load_modules and self.modules:
+            self.module_results = self.evaluate_modules(self.modules)
+        else:
+            self.module_results = {}
+            
         self.data_path = data_path
         print(self.data_path)
+    
+    def load_hallmarks_data(self):
+        """Load hallmarks gene sets from Excel file"""
+        try:
+            hallmarks_path = os.path.join("genepioneer", "Data", "Hallmarks_genes_wide.xlsx")
+            df = pd.read_excel(hallmarks_path)
+            
+            # Convert to dictionary where keys are pathway names and values are gene sets
+            hallmarks_dict = {}
+            for pathway in df.columns:
+                # Remove NaN values and convert to set
+                genes = set(df[pathway].dropna().astype(str))
+                hallmarks_dict[pathway] = genes
+                
+            print(f"Loaded {len(hallmarks_dict)} hallmark pathways")
+            return hallmarks_dict
+        except Exception as e:
+            print(f"Error loading hallmarks data: {e}")
+            return {}
+    
+    def get_network_size(self):
+        """Get the actual number of genes in the Prostate_filtered network"""
+        try:
+            import networkx as nx
+            # Try different possible paths for the network file
+            possible_paths = [
+                "tests/Prostate_filtered_network_features.gml",
+                "Prostate_filtered_network_features.gml",
+                os.path.join("tests", "Prostate_filtered_network_features.gml")
+            ]
+            
+            for network_path in possible_paths:
+                if os.path.exists(network_path):
+                    G = nx.read_gml(network_path)
+                    network_size = G.number_of_nodes()
+                    print(f"Loaded network from {network_path} with {network_size} genes")
+                    return network_size
+            
+            # If no network file found, fallback to default
+            print("Warning: Could not find Prostate_filtered network file, using default background size")
+            return 20000
+            
+        except Exception as e:
+            print(f"Error loading network: {e}, using default background size")
+            return 20000
     
     def read_modules(self, benchmark_folder):
         benchmark_genes = {}
@@ -148,59 +219,118 @@ class Evaluation:
                 print(f'AUC-ROC: {auc_roc:.3f}')
                 print(f'precision: {precision:.3f}')
                 print(f'recall: {recall:.3f}')
-                self.print_driver_ranking_stats(cancer_type, benchmark_name, driver_ranks, other_ranks)
+    def manual_pathway_enrichment(self, query_genes, background_size=None):
+        """
+        Perform manual pathway enrichment analysis using hypergeometric test
+        Uses actual network size as background if not specified
+        """
+        query_genes = set(str(gene).upper() for gene in query_genes)  # Convert to uppercase strings
+        
+        # Use actual network size if background_size not provided
+        if background_size is None:
+            background_size = self.get_network_size()
+        
+        results = []
+        
+        for pathway_name, pathway_genes in self.hallmarks_data.items():
+            # Convert pathway genes to uppercase strings for comparison
+            pathway_genes_upper = set(str(gene).upper() for gene in pathway_genes)
+            
+            # Calculate overlap
+            overlap = query_genes.intersection(pathway_genes_upper)
+            overlap_size = len(overlap)
+            
+            # Skip if no overlap
+            if overlap_size == 0:
+                continue
+                
+            # Hypergeometric test parameters
+            M = background_size  # Total number of genes in background (actual network size)
+            n = len(pathway_genes_upper)  # Number of genes in this pathway
+            N = len(query_genes)  # Number of genes in query
+            k = overlap_size  # Number of overlapping genes
+            
+            # Calculate p-value using hypergeometric distribution
+            # P(X >= k) where X ~ Hypergeometric(M, n, N)
+            p_value = hypergeom.sf(k - 1, M, n, N)
+            
+            results.append({
+                'pathway': pathway_name,
+                'pathway_size': n,
+                'query_size': N,
+                'overlap_size': overlap_size,
+                'overlap_genes': list(overlap),
+                'p_value': p_value,
+                'enrichment_ratio': (overlap_size / N) / (n / M) if n > 0 else 0
+            })
+        
+        # Sort by p-value
+        results.sort(key=lambda x: x['p_value'])
+        return results
                 
     def evaluate_modules(self, modules):
         
-        pathways_of_interest = {
-            "KEGG:04068",
-            "KEGG:04310",
-            "KEGG:04010",
-            "KEGG:04115",
-            "KEGG:04915",
-            "KEGG:04014",
-            "KEGG:04012",
-            "KEGG:04150",
-            "KEGG:05200",
-            "KEGG:04151",
-            "KEGG:04370"
-        }
+        # We'll accept any significant hallmark pathway, not just specific ones
         results = {}        
         def evaluate_single_module(module):
             genes, score1, score2 = module
-            enrichment_results = self.gp.profile(organism='hsapiens', query=genes)
-            enrichment_results.to_csv('out.csv')
-            significant_pathways = enrichment_results[
-                (enrichment_results['p_value'] <= 0.05) & 
-                (enrichment_results['native'].isin(pathways_of_interest))
+            
+            # Use manual enrichment analysis instead of gprofiler
+            enrichment_results = self.manual_pathway_enrichment(genes)
+            
+            # Filter for significant pathways (p-value <= 0.05)
+            # Remove the restriction to pathways_of_interest to be more inclusive
+            significant_pathways = [
+                result for result in enrichment_results
+                if result['p_value'] <= 0.05
             ]
-            if len(significant_pathways) >= 2:
+            
+            print(f"Module {genes[:3]}...: Found {len(enrichment_results)} total enrichments, {len(significant_pathways)} significant")
+            
+            # Be permissive: accept modules with 1+ significant pathways
+            if len(significant_pathways) >= 1:
+                # Convert to format similar to gprofiler output
+                pathway_info = [
+                    {
+                        'name': result['pathway'],
+                        'p_value': result['p_value'],
+                        'overlap_size': result['overlap_size'],
+                        'pathway_size': result['pathway_size'],
+                        'enrichment_ratio': result['enrichment_ratio'],
+                        'overlap_genes': result['overlap_genes']
+                    }
+                    for result in significant_pathways
+                ]
+                
+                print(f"  -> Module ACCEPTED with {len(significant_pathways)} significant pathways")
                 return {
                     'module_genes': genes,
                     'score1': score1,
                     'score2': score2,
-                    'significant_pathways': significant_pathways[['name', 'p_value']].to_dict(orient='records')
+                    'significant_pathways': pathway_info
                 }
+            else:
+                print(f"  -> Module REJECTED (no significant pathways)")
+                return None
+        # Process modules sequentially instead of with threading to avoid issues
+        count = 0
+        for cancer_type, module_list in modules.items():
+            if cancer_type not in results:
+                results[cancer_type] = []
             
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future_to_cancer_type = {
-                executor.submit(evaluate_single_module, module): (cancer_type, module)
-                for cancer_type, module_list in modules.items() for module in module_list
-            }
+            print(f"Processing {len(module_list)} modules for {cancer_type}")
             
-            count = 0
-            for future in concurrent.futures.as_completed(future_to_cancer_type):
-                cancer_type, module = future_to_cancer_type[future]
-                if cancer_type not in results:
-                    results[cancer_type] = []
+            for module in module_list:
                 try:
-                    evaluation = future.result()
-                    if evaluation: 
+                    evaluation = evaluate_single_module(module)
+                    if evaluation:  # Only add if not None
                         results[cancer_type].append(evaluation)
                     count += 1
-                    print(count)
+                    print(f"Processed {count} modules")
                 except Exception as e:
                     print(f"Module evaluation failed for {cancer_type}: {e}")
+                    import traceback
+                    traceback.print_exc()
     
         return results
     

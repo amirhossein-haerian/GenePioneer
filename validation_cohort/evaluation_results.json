@@ -1,0 +1,200 @@
+{
+  "ValidationCohort": [
+    {
+      "module_genes": [
+        "CHD1L",
+        "SOX9",
+        "SFRP1",
+        "WNT5A",
+        "TNF",
+        "TLR4",
+        "TLR3",
+        "IL1B",
+        "TLR9",
+        "APP"
+      ],
+      "score1": 1018500.0,
+      "score2": 814.8000000000001,
+      "significant_pathways": [
+        {
+          "name": "HALLMARK_APOPTOSIS",
+          "p_value": 0.007126912002148467,
+          "overlap_size": 3,
+          "pathway_size": 161,
+          "enrichment_ratio": 7.103105590062111,
+          "overlap_genes": [
+            "TNF",
+            "APP",
+            "IL1B"
+          ]
+        },
+        {
+          "name": "HALLMARK_ALLOGRAFT_REJECTION",
+          "p_value": 0.012979902551470064,
+          "overlap_size": 3,
+          "pathway_size": 200,
+          "enrichment_ratio": 5.718,
+          "overlap_genes": [
+            "IL1B",
+            "TNF",
+            "TLR3"
+          ]
+        },
+        {
+          "name": "HALLMARK_IL6_JAK_STAT3_SIGNALING",
+          "p_value": 0.02057258694667472,
+          "overlap_size": 2,
+          "pathway_size": 87,
+          "enrichment_ratio": 8.763218390804598,
+          "overlap_genes": [
+            "TNF",
+            "IL1B"
+          ]
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "CHD1L",
+        "SOX9",
+        "WNT5A",
+        "TNF",
+        "APP"
+      ],
+      "score1": 1038000.0,
+      "score2": 726.5999999999999,
+      "significant_pathways": [
+        {
+          "name": "HALLMARK_APOPTOSIS",
+          "p_value": 0.016297404441988322,
+          "overlap_size": 2,
+          "pathway_size": 161,
+          "enrichment_ratio": 9.47080745341615,
+          "overlap_genes": [
+            "TNF",
+            "APP"
+          ]
+        },
+        {
+          "name": "HALLMARK_NOTCH_SIGNALING",
+          "p_value": 0.041295232619487615,
+          "overlap_size": 1,
+          "pathway_size": 32,
+          "enrichment_ratio": 23.825,
+          "overlap_genes": [
+            "WNT5A"
+          ]
+        },
+        {
+          "name": "HALLMARK_ANGIOGENESIS",
+          "p_value": 0.046359695142402846,
+          "overlap_size": 1,
+          "pathway_size": 36,
+          "enrichment_ratio": 21.177777777777777,
+          "overlap_genes": [
+            "APP"
+          ]
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "CHD1L",
+        "SMARCC1",
+        "SS18",
+        "ACTL6A"
+      ],
+      "score1": 365333.3333333333,
+      "score2": 365.3333333333333,
+      "significant_pathways": [
+        {
+          "name": "HALLMARK_G2M_CHECKPOINT",
+          "p_value": 0.015320850821283006,
+          "overlap_size": 2,
+          "pathway_size": 200,
+          "enrichment_ratio": 9.53,
+          "overlap_genes": [
+            "SMARCC1",
+            "SS18"
+          ]
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "CHD1L",
+        "EZH1",
+        "HDAC5",
+        "RB1"
+      ],
+      "score1": 224000.0,
+      "score2": 224.0,
+      "significant_pathways": [
+        {
+          "name": "HALLMARK_MYOGENESIS",
+          "p_value": 0.015320850821283006,
+          "overlap_size": 2,
+          "pathway_size": 200,
+          "enrichment_ratio": 9.53,
+          "overlap_genes": [
+            "HDAC5",
+            "RB1"
+          ]
+        },
+        {
+          "name": "HALLMARK_WNT_BETA_CATENIN_SIGNALING",
+          "p_value": 0.043365117341014614,
+          "overlap_size": 1,
+          "pathway_size": 42,
+          "enrichment_ratio": 22.69047619047619,
+          "overlap_genes": [
+            "HDAC5"
+          ]
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "CHD1L",
+        "SOX9",
+        "GATA3"
+      ],
+      "score1": 27000.0,
+      "score2": 270.0,
+      "significant_pathways": [
+        {
+          "name": "HALLMARK_APICAL_SURFACE",
+          "p_value": 0.03423822137839499,
+          "overlap_size": 1,
+          "pathway_size": 44,
+          "enrichment_ratio": 28.87878787878788,
+          "overlap_genes": [
+            "GATA3"
+          ]
+        }
+      ]
+    },
+    {
+      "module_genes": [
+        "CHD1L",
+        "HNRNPC",
+        "POLE3"
+      ],
+      "score1": 17600.0,
+      "score2": 176.0,
+      "significant_pathways": [
+        {
+          "name": "HALLMARK_MYC_TARGETS_V1",
+          "p_value": 0.007934128597169555,
+          "overlap_size": 2,
+          "pathway_size": 200,
+          "enrichment_ratio": 12.706666666666667,
+          "overlap_genes": [
+            "HNRNPC",
+            "POLE3"
+          ]
+        }
+      ]
+    }
+  ]
+}

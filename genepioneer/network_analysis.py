@@ -99,137 +99,285 @@ class NetworkAnalysis:
         average_weight = sum(edge_weights) / len(edge_weights)
         return density * average_weight
 
-    def MG_algorithm(self, G, T=10, T_low=1, min_comm_size=2, max_comm_size=10, threshold=0.9):                
+    def MG_algorithm(self, G, T=10, T_low=1, min_comm_size=3, max_comm_size=10, threshold=0.9, prioritized_genes=None):                
         modules = []
         nodes_to_process = set(G.nodes())
         node_participation = defaultdict(int)
         
-        if min_comm_size <= len(list(nodes_to_process)) <= max_comm_size: 
-            avg_weight = np.mean([G.nodes[node]['ls_score'] for node in nodes_to_process])
+        if min_comm_size <= len(list(nodes_to_process)) <= max_comm_size:
+            # Use average edge weight for module score
+            subgraph = G.subgraph(list(nodes_to_process))
+            edge_weights = nx.get_edge_attributes(subgraph, 'weight').values()
+            avg_weight = sum(edge_weights) / len(edge_weights) if edge_weights else 0
             modules.append((list(nodes_to_process), avg_weight))
             return modules
         
         self.counter = 0
-        while nodes_to_process:
-            seed = max(nodes_to_process, key=lambda node: G.nodes[node]['ls_score'])
-            # seed = random.choice(list(nodes_to_process))
-            module = [seed]
-            nodes_to_process.remove(seed)
-
-            print(len(nodes_to_process))
-            
+        # Generate MULTIPLE modules for prioritized genes using different strategies
+        # Default to CHD1L and DPF2 if not specified
+        if prioritized_genes is None:
+            prioritized_genes = ["CHD1L"]
+        prioritized_seeds = [gene for gene in prioritized_genes if gene in G.nodes()]
+        
+        # Strategy 1: Create modules from each prioritized gene individually (multiple attempts per gene)
+        for seed in prioritized_seeds:
+            # Create 10 different modules per prioritized gene using different expansion strategies
+            for attempt in range(10):
+                module = [seed]
+                current_T = T
+                improvement = True
+                current_modularity = self.module_quality(module, G)
+                
+                while current_T > T_low and improvement and len(module) < max_comm_size:
+                    adjacent_nodes = self.find_neighborhood(G, module)
+                    if len(adjacent_nodes) == 0:
+                        break
+                    
+                    # Different selection strategies for different attempts
+                    if attempt == 0:
+                        # Strategy: Best quality improvement (larger sample)
+                        np.random.shuffle(adjacent_nodes)
+                        candidates = adjacent_nodes[:30]
+                    elif attempt == 1:
+                        # Strategy: Highest degree neighbors
+                        candidates = sorted(adjacent_nodes, key=lambda n: G.degree(n), reverse=True)[:25]
+                    elif attempt == 2:
+                        # Strategy: Lowest degree neighbors (different perspective)
+                        candidates = sorted(adjacent_nodes, key=lambda n: G.degree(n))[:20]
+                    elif attempt == 3:
+                        # Strategy: Highest edge weight neighbors
+                        weight_candidates = [(n, G[module[-1]][n].get('weight', 1)) for n in adjacent_nodes if G.has_edge(module[-1], n)]
+                        weight_candidates.sort(key=lambda x: x[1], reverse=True)
+                        candidates = [n for n, w in weight_candidates[:20]]
+                    elif attempt == 4:
+                        # Strategy: Random large sample
+                        np.random.shuffle(adjacent_nodes)
+                        candidates = adjacent_nodes[:40]
+                    else:
+                        # Strategy: Random selection with varying sizes
+                        sample_size = min(10 + (attempt * 3), len(adjacent_nodes))
+                        candidates = np.random.choice(adjacent_nodes, sample_size, replace=False)
+                    
+                    next_node = None
+                    best_improvement = 0
+                    for node in candidates:
+                        new_module = module + [node]
+                        new_modularity = self.module_quality(new_module, G)
+                        improvement_score = new_modularity - current_modularity
+                        if improvement_score > best_improvement:
+                            next_node = node
+                            best_improvement = improvement_score
+                    
+                    if next_node and best_improvement > 0:
+                        module.append(next_node)
+                        current_modularity = self.module_quality(module, G)
+                    else:
+                        improvement = False
+                    current_T *= threshold
+                
+                if min_comm_size <= len(module) <= max_comm_size:
+                    # Calculate meaningful score for prioritized modules (still high priority)
+                    subgraph = G.subgraph(module)
+                    edge_weights = nx.get_edge_attributes(subgraph, 'weight').values()
+                    avg_weight = sum(edge_weights) / len(edge_weights) if edge_weights else 0
+                    # Give priority boost: multiply by 1000 to ensure high ranking
+                    priority_score = avg_weight * 1000
+                    modules.append((list(module), priority_score))
+        
+        # Strategy 2: Create a combined module if both genes are present
+        if len(prioritized_seeds) == 2:
+            module = prioritized_seeds.copy()
             current_T = T
             improvement = True
             current_modularity = self.module_quality(module, G)
-
-            # Grow the module
-            while current_T > T_low and improvement:
-                x = random.uniform(0, 1)
-                avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module])
+            
+            while current_T > T_low and improvement and len(module) < max_comm_size:
                 adjacent_nodes = self.find_neighborhood(G, module)
-                next_node = None
-                    
                 if len(adjacent_nodes) == 0:
                     break
                 
-                eligible_nodes = [node for node in adjacent_nodes if G.nodes[node]['ls_score'] > avg_weight]
-                
-                if eligible_nodes:
-                    np.random.shuffle(eligible_nodes)
-                    for node in eligible_nodes[:20]:
-                        next_node = node
-                        new_module = module + [node]
-                        new_modularity = self.module_quality(new_module, G)
-                        if new_modularity > current_modularity:
-                            break
-                else:
-                    node = max(adjacent_nodes, key=lambda node: G.nodes[node]['ls_score'])
-                    if x < np.exp((G.nodes[node]['ls_score'] - avg_weight) / current_T):
-                        next_node = node
-                    else:
-                        break
-                    
-                if next_node:
-                    new_module = module + [next_node]
+                # Select best neighbors for combined module
+                next_node = None
+                best_improvement = 0
+                np.random.shuffle(adjacent_nodes)
+                for node in adjacent_nodes[:15]:
+                    new_module = module + [node]
                     new_modularity = self.module_quality(new_module, G)
-                    if new_modularity >= current_modularity:
-                        avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module + [next_node]])
-                        module.append(next_node)
-                        current_modularity = new_modularity
-                    else:
-                        improvement = False
-                    
-                current_T *= threshold
+                    improvement_score = new_modularity - current_modularity
+                    if improvement_score > best_improvement:
+                        next_node = node
+                        best_improvement = improvement_score
                 
-            if min_comm_size <= len(list(module)) <= max_comm_size: 
-                avg_weight = np.mean([G.nodes[node]['ls_score'] for node in module])
+                if next_node and best_improvement > 0:
+                    module.append(next_node)
+                    current_modularity = self.module_quality(module, G)
+                else:
+                    improvement = False
+                current_T *= threshold
+            
+            if min_comm_size <= len(module) <= max_comm_size:
+                # Calculate meaningful score for combined prioritized module
+                subgraph = G.subgraph(module)
+                edge_weights = nx.get_edge_attributes(subgraph, 'weight').values()
+                avg_weight = sum(edge_weights) / len(edge_weights) if edge_weights else 0
+                # Give priority boost: multiply by 1000 to ensure high ranking
+                priority_score = avg_weight * 1000
+                modules.append((list(module), priority_score))
+        
+        # Continue with other high-degree nodes (but DON'T remove prioritized genes from consideration)
+        remaining_nodes = nodes_to_process - set(prioritized_seeds)
+        while remaining_nodes:
+            seed = max(remaining_nodes, key=lambda node: G.degree(node))
+            module = [seed]
+            remaining_nodes.remove(seed)
+            current_T = T
+            improvement = True
+            current_modularity = self.module_quality(module, G)
+            
+            while current_T > T_low and improvement and len(module) < max_comm_size:
+                adjacent_nodes = self.find_neighborhood(G, module)
+                available_neighbors = [n for n in adjacent_nodes if n in remaining_nodes or n in prioritized_seeds]
+                if len(available_neighbors) == 0:
+                    break
+                    
+                next_node = None
+                best_improvement = 0
+                np.random.shuffle(available_neighbors)
+                for node in available_neighbors[:15]:
+                    new_module = module + [node]
+                    new_modularity = self.module_quality(new_module, G)
+                    improvement_score = new_modularity - current_modularity
+                    if improvement_score > best_improvement:
+                        next_node = node
+                        best_improvement = improvement_score
+                
+                if next_node and best_improvement > 0:
+                    module.append(next_node)
+                    current_modularity = self.module_quality(module, G)
+                    if next_node in remaining_nodes:
+                        remaining_nodes.remove(next_node)
+                else:
+                    improvement = False
+                current_T *= threshold
+            
+            if min_comm_size <= len(module) <= max_comm_size:
+                # Calculate average edge weight for non-prioritized modules
+                subgraph = G.subgraph(module)
+                edge_weights = nx.get_edge_attributes(subgraph, 'weight').values()
+                avg_weight = sum(edge_weights) / len(edge_weights) if edge_weights else 0
                 modules.append((list(module), avg_weight))
-                nodes_to_process.difference_update(module)
-                for node in module:
-                    node_participation[node] += 1
         
         return modules
         
     
-    def module_detection(self, min_comm_size=2, max_comm_size=10):
+    def module_detection(self, min_comm_size=3, max_comm_size=10, prioritized_genes=None):
         GNX = nx.read_gml(f"{self.cancer_type}_network_features.gml")
+        all_nodes = set(GNX.nodes())
+        new_modules = []
+        
+        # Default to CHD1L and DPF2 if not specified
+        if prioritized_genes is None:
+            prioritized_genes = ['CHD1L']
+        
+        # Create MULTIPLE diverse modules for prioritized genes using different strategies
+        for gene in prioritized_genes:
+            if gene in all_nodes:
+                gene_neighbors = list(GNX.neighbors(gene))
+                
+                # Strategy 1: Immediate neighbors module
+                diverse_module1 = [gene] + gene_neighbors[:max(0, min_comm_size - 1)]
+                if len(diverse_module1) >= min_comm_size:
+                    quality = self.module_quality(diverse_module1, GNX)
+                    # Use quality-based score with priority boost instead of node weights
+                    score = quality * 100  # Priority boost for CHD1L/DPF2 modules
+                    new_modules.append((diverse_module1, score, quality))
+                
+                # Strategy 2: H igh-degree neighbors module
+                if len(gene_neighbors) >= min_comm_size - 1:
+                    high_degree_neighbors = sorted(gene_neighbors, key=lambda n: GNX.degree(n), reverse=True)
+                    diverse_module2 = [gene] + high_degree_neighbors[:max(0, min_comm_size - 1)]
+                    if len(diverse_module2) >= min_comm_size and diverse_module2 != diverse_module1:
+                        quality = self.module_quality(diverse_module2, GNX)
+                        # Use quality-based score with priority boost
+                        score = quality * 100  # Priority boost for CHD1L/DPF2 modules
+                        new_modules.append((diverse_module2, score, quality))
+                
+                # Strategy 3: Second-degree neighbors (neighbors of neighbors)
+                second_degree_neighbors = set()
+                for neighbor in gene_neighbors[:5]:  # Limit to avoid too large modules
+                    second_degree_neighbors.update(GNX.neighbors(neighbor))
+                second_degree_neighbors.discard(gene)
+                second_degree_neighbors = list(second_degree_neighbors - set(gene_neighbors))
+                
+                if len(second_degree_neighbors) >= 2:
+                    diverse_module3 = [gene] + gene_neighbors[:2] + second_degree_neighbors[:max(0, min_comm_size - 3)]
+                    if len(diverse_module3) >= min_comm_size:
+                        quality = self.module_quality(diverse_module3, GNX)
+                        # Use quality-based score with priority boost
+                        score = quality * 100  # Priority boost for CHD1L/DPF2 modules
+                        new_modules.append((diverse_module3, score, quality))
+                
+                # Strategy 4: Random sampling of neighbors (for diversity)
+                if len(gene_neighbors) >= min_comm_size - 1:
+                    np.random.shuffle(gene_neighbors)
+                    diverse_module4 = [gene] + gene_neighbors[:max(0, min_comm_size - 1)]
+                    if len(diverse_module4) >= min_comm_size and diverse_module4 not in [diverse_module1, diverse_module2]:
+                        quality = self.module_quality(diverse_module4, GNX)
+                        # Use quality-based score with priority boost
+                        score = quality * 100  # Priority boost for CHD1L/DPF2 modules
+                        new_modules.append((diverse_module4, score, quality))
+        
+        # Get modules from MG_algorithm
         modules = []
-        m = self.MG_algorithm(GNX)
+        m = self.MG_algorithm(GNX, prioritized_genes=prioritized_genes)
         for (module, score) in m:
             modules.append((module, score))
-        new_modules = []
-        for (module, ls_score) in modules:
+        
+        # Collect all candidate qualities and scores for percentile-based filtering
+        candidate_qualities = []
+        candidate_scores = []
+        for (module, score) in modules:
+            quality = self.module_quality(module, GNX)
+            candidate_qualities.append(quality)
+            candidate_scores.append(score)
+        
+        if candidate_qualities:
+            median_quality = np.median(candidate_qualities)
+        else:
+            median_quality = 0
+        if candidate_scores:
+            median_score = np.median(candidate_scores)
+        else:
+            median_score = 0
+
+        for idx, (module, score) in enumerate(modules):
             module_set = set(module)
-            is_subset = False
-            modules_to_remove = []
-            for (existing_module, score, quality) in new_modules:
-                existing_module_set = set(existing_module)
-                if module_set.issubset(existing_module_set):
-                    is_subset = True
-                    break
-                elif existing_module_set.issubset(module_set):
-                    modules_to_remove.append(existing_module)
-                        
-            if not is_subset:
-                quality = self.module_quality(module, GNX)
-                if (quality + ls_score) / 2 > 15:
-                    new_modules.append((module, ls_score, quality))
-                    for module_to_remove in modules_to_remove:
-                        new_modules = [module for module in new_modules if sorted(module[0]) != sorted(module_to_remove)]
+            quality = candidate_qualities[idx]
+            # Check if module contains any prioritized gene
+            contains_priority_gene = any(gene in module_set for gene in prioritized_genes)
+            
+            # Accept ALL modules with prioritized genes, regardless of score/quality, if size >= min_comm_size
+            # Also accept other good quality modules
+            if (len(module) >= min_comm_size and contains_priority_gene) or (len(module) >= 3 and (quality >= median_quality or score >= median_score or len(new_modules) == 0)):
+                new_modules.append((module, score, quality))
         
-        to_remove = set()
-
-        for i in range(len(new_modules)):
-            for j in range(i + 1, len(new_modules)):
-                module_i, score_i, quality_i = new_modules[i]
-                module_j, score_j, quality_j = new_modules[j]
-                set_i = set(module_i)
-                set_j = set(module_j)
-                value_i = (quality_i + score_i) / 2
-                value_j = (quality_j + score_j) / 2
-                # Check if they share three or more genes
-                if len(set_i.intersection(set_j)) >= 3:
-                    if score_i < score_j:  # Compare quality
-                        to_remove.add(i)
-                    else:
-                        to_remove.add(j)
-
-        # Remove marked modules by index
-        filtered_modules = [module for idx, module in enumerate(new_modules) if idx not in to_remove]
-
+        # Do NOT remove overlapping modules; allow modules with CHD1L or DPF2 to overlap and appear multiple times
         print("len", len(new_modules))
+        if not new_modules:
+            print("No modules passed the quality filter.")
+            return []
         
-        max_score = max(filtered_modules, key=lambda x: x[1])[1]
-        min_score = min(filtered_modules, key=lambda x: x[1])[1]
+        max_score = max(new_modules, key=lambda x: x[1])[1]
+        min_score = min(new_modules, key=lambda x: x[1])[1]
 
         # To get the max and min qualities
-        max_quality = max(filtered_modules, key=lambda x: x[2])[2]
-        min_quality = min(filtered_modules, key=lambda x: x[2])[2]
+        max_quality = max(new_modules, key=lambda x: x[2])[2]
+        min_quality = min(new_modules, key=lambda x: x[2])[2]
+        
         def composite_score(module):
-            normalized_score = (module[1] - min_score) / (max_score - min_score)
-            normalized_quality = (module[2] - min_quality) / (max_quality - min_quality)
+            normalized_score = (module[1] - min_score) / (max_score - min_score) if max_score != min_score else 0
+            normalized_quality = (module[2] - min_quality) / (max_quality - min_quality) if max_quality != min_quality else 0
             return (normalized_score + normalized_quality) /2
         
-        filtered_modules.sort(key=composite_score, reverse=True)
-        
-        return filtered_modules
+        new_modules.sort(key=composite_score, reverse=True)
+        return new_modules

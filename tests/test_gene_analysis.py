@@ -6,7 +6,7 @@ import json
 
 
 # "Adrenal", "Bladder", "Brain", "Cervix", "Colon", "Corpus uteri", "Kidney", "Liver", "Ovary", "Prostate", "Skin", "Thyroid"
-cancers = ["Prostate_low"]
+cancers = ["Prostate"]
 
-gene_analysis = GeneAnalysis("Ovary", "../genepioneer/Data/benchmark-data/CGC.txt")
+gene_analysis = GeneAnalysis("Prostate", "../genepioneer/Data/")
 gene_analysis.analyze_genes()

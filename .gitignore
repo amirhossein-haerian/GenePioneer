@@ -161,3 +161,9 @@ cython_debug/
 
 tests/
 *.gml
+# Large data files
+data_cna.txt
+data_mutations.txt
+*.gml
+validation_cohort/*.gml
+validation_cohort/*.csv

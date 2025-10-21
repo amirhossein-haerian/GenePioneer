@@ -18,8 +18,8 @@
           "pathway_size": 200,
           "enrichment_ratio": 40.0,
           "overlap_genes": [
-            "PIK3CA",
-            "GATA3"
+            "GATA3",
+            "PIK3CA"
           ]
         },
         {
@@ -112,8 +112,8 @@
           "pathway_size": 200,
           "enrichment_ratio": 40.0,
           "overlap_genes": [
-            "PIK3CA",
-            "GATA3"
+            "GATA3",
+            "PIK3CA"
           ]
         },
         {
@@ -510,8 +510,8 @@
           "pathway_size": 200,
           "enrichment_ratio": 66.66666666666666,
           "overlap_genes": [
-            "WNT5A",
-            "CD44"
+            "CD44",
+            "WNT5A"
           ]
         },
         {
@@ -614,8 +614,8 @@
           "pathway_size": 200,
           "enrichment_ratio": 60.0,
           "overlap_genes": [
-            "PRKDC",
             "BRCA2",
+            "PRKDC",
             "H2AX"
           ]
         },
@@ -751,8 +751,8 @@
           "pathway_size": 200,
           "enrichment_ratio": 66.66666666666666,
           "overlap_genes": [
-            "BCL2",
-            "VEGFA"
+            "VEGFA",
+            "BCL2"
           ]
         },
         {
